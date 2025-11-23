@@ -1,0 +1,69 @@
+services:
+  # Postgres service
+  # Comment out if using an external Postgres server
+  postgres:
+    restart: unless-stopped
+    image: postgres:16-bullseye
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgresdata:/var/lib/postgresql/data
+      # Copy the provision_postgres.sql file to the container
+      - ./provision_postgres.sql:/docker-entrypoint-initdb.d/provision_postgres.sql
+    # Uncomment the following lines to expose the Postgres port
+    # ports:
+    #   - 5432:5432
+
+  # Redis service
+  # Comment out if using an external Redis server
+  redis:
+    restart: unless-stopped
+    image: redis:7.2.0-alpine
+    # Uncomment the following lines to expose the Redis port
+    # ports:
+    #   - 6379:6379
+
+  django:
+    restart: unless-stopped
+    image: dockerregistry.hlab.es/autoipc-be:latest
+    env_file:
+      - ./.env
+    entrypoint: /app/backend/docker/entrypoint-django.sh
+    ports:
+      - 8000:8000
+    volumes:
+      - ./media:/app/backend/media
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/ht/startup-probe/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    restart: unless-stopped
+    image: dockerregistry.hlab.es/autoipc-be:latest
+    env_file:
+      - ./.env
+    entrypoint: /app/backend/docker/entrypoint-worker.sh
+    volumes:
+      - ./media:/app/backend/media
+    depends_on:
+      django:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  beat:
+    restart: unless-stopped
+    image: dockerregistry.hlab.es/autoipc-be:latest
+    env_file:
+      - ./.env
+    entrypoint: /app/backend/docker/entrypoint-beat.sh
+    depends_on:
+      django:
+        condition: service_healthy
+      redis:
+        condition: service_started
