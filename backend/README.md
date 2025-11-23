@@ -27,10 +27,18 @@ This is mainly done to:
 python manage.py migraate
 ```
 
-2. Run the server:
+3. Run the server:
 
 ```bash
 python manage.py runserver
 ```
+
+## API Schema
+
+This project uses DRF Spectacular to create an OpenAPI Schema.
+
+With the server running, head to http://localhost:8000/api/schema/swagger-ui/
+
+
 
 
