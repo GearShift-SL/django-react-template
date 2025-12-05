@@ -49,6 +49,11 @@ export interface PatchedTenantUserUpdateRequest {
   role?: RoleEnum;
 }
 
+export interface PatchedUserProfileRequest {
+  /** @nullable */
+  avatar?: Blob | null;
+}
+
 export interface PatchedUserRequest {
   /** @maxLength 30 */
   first_name?: string;
@@ -220,6 +225,7 @@ export interface User {
   first_name?: string;
   /** @maxLength 30 */
   last_name?: string;
+  readonly profile: UserProfile;
 }
 
 export interface UserMe {
@@ -231,6 +237,17 @@ export interface UserMe {
   last_name?: string;
   readonly tenant: SimpleTenant;
   readonly tenant_user: TenantUserSimple;
+  readonly profile: UserProfile;
+}
+
+export interface UserProfile {
+  /** @nullable */
+  avatar?: string | null;
+}
+
+export interface UserProfileRequest {
+  /** @nullable */
+  avatar?: Blob | null;
 }
 
 export interface UserRequest {

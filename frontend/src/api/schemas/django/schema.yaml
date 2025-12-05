@@ -403,6 +403,89 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+  /auth/user/me/profile/:
+    get:
+      operationId: user_profile
+      description: Retrieve or update the current user's profile information including
+        avatar. Use multipart/form-data to upload files.
+      summary: Get or update user profile
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+        '400':
+          description: Bad request - validation error
+        '401':
+          description: Unauthorized - authentication required
+    put:
+      operationId: user_profile_3
+      description: Retrieve or update the current user's profile information including
+        avatar. Use multipart/form-data to upload files.
+      summary: Get or update user profile
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+        '400':
+          description: Bad request - validation error
+        '401':
+          description: Unauthorized - authentication required
+    patch:
+      operationId: user_profile_2
+      description: Retrieve or update the current user's profile information including
+        avatar. Use multipart/form-data to upload files.
+      summary: Get or update user profile
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+        '400':
+          description: Bad request - validation error
+        '401':
+          description: Unauthorized - authentication required
   /tenants/invitations/:
     get:
       operationId: tenants_invitations_list
@@ -825,6 +908,13 @@ components:
       properties:
         role:
           $ref: '#/components/schemas/RoleEnum'
+    PatchedUserProfileRequest:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: binary
+          nullable: true
     PatchedUserRequest:
       type: object
       properties:
@@ -1128,9 +1218,14 @@ components:
         last_name:
           type: string
           maxLength: 30
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          readOnly: true
       required:
       - email
       - pk
+      - profile
     UserMe:
       type: object
       properties:
@@ -1156,11 +1251,30 @@ components:
           allOf:
           - $ref: '#/components/schemas/TenantUserSimple'
           readOnly: true
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          readOnly: true
       required:
       - email
       - pk
+      - profile
       - tenant
       - tenant_user
+    UserProfile:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+    UserProfileRequest:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: binary
+          nullable: true
     UserRequest:
       type: object
       properties:

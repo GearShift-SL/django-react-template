@@ -2,6 +2,7 @@
 import type {
   CodeConfirmRequestRequest,
   CodeConfirmResponse,
+  PatchedUserProfileRequest,
   PatchedUserRequest,
   ProviderTokenRequestRequest,
   ProviderTokenResponse,
@@ -11,6 +12,8 @@ import type {
   StartAuthResponse,
   User,
   UserMe,
+  UserProfile,
+  UserProfileRequest,
   UserRequest,
 } from "../djangoAPI.schemas";
 
@@ -149,6 +152,54 @@ export const authUserMePartialUpdate = (
     options,
   );
 };
+/**
+ * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
+ * @summary Get or update user profile
+ */
+export const userProfile = (
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  return customAxiosInstance<UserProfile>(
+    { url: `/auth/user/me/profile/`, method: "GET" },
+    options,
+  );
+};
+/**
+ * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
+ * @summary Get or update user profile
+ */
+export const userProfile3 = (
+  userProfileRequest: UserProfileRequest,
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  return customAxiosInstance<UserProfile>(
+    {
+      url: `/auth/user/me/profile/`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: userProfileRequest,
+    },
+    options,
+  );
+};
+/**
+ * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
+ * @summary Get or update user profile
+ */
+export const userProfile2 = (
+  patchedUserProfileRequest: PatchedUserProfileRequest,
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  return customAxiosInstance<UserProfile>(
+    {
+      url: `/auth/user/me/profile/`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: patchedUserProfileRequest,
+    },
+    options,
+  );
+};
 export type AuthConfirmCodeResult = NonNullable<
   Awaited<ReturnType<typeof authConfirmCode>>
 >;
@@ -175,4 +226,13 @@ export type AuthUserMeUpdateResult = NonNullable<
 >;
 export type AuthUserMePartialUpdateResult = NonNullable<
   Awaited<ReturnType<typeof authUserMePartialUpdate>>
+>;
+export type UserProfileResult = NonNullable<
+  Awaited<ReturnType<typeof userProfile>>
+>;
+export type UserProfile3Result = NonNullable<
+  Awaited<ReturnType<typeof userProfile3>>
+>;
+export type UserProfile2Result = NonNullable<
+  Awaited<ReturnType<typeof userProfile2>>
 >;
