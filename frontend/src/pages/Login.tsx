@@ -2,8 +2,9 @@ import { LoginForm } from "@/components/login/LoginForm";
 import type { LoginFormValues } from "@/components/login/LoginForm";
 import { toast } from "sonner";
 import RedirectIfAuthenticatedLayout from "@/layouts/RedirectIfAuthenticatedLayout";
-import { authStart } from "@/api/django/auth/auth";
-import { useState } from "react";
+import { authStart, authProvidersList } from "@/api/django/auth/auth";
+import { useState, useEffect } from "react";
+import type { Provider } from "@/api/django/djangoAPI.schemas";
 import {
   InputOTP,
   InputOTPGroup,
@@ -27,6 +28,24 @@ const Login = () => {
     "initial"
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [googleProvider, setGoogleProvider] = useState<Provider | null>(null);
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await authProvidersList();
+        const google = response.providers.find(
+          (p: Provider) => p.provider === "google"
+        );
+        if (google) {
+          setGoogleProvider(google);
+        }
+      } catch (error) {
+        console.error("Failed to fetch auth providers:", error);
+      }
+    };
+    fetchProviders();
+  }, []);
 
   const handleEmailLogin = async (formData: LoginFormValues) => {
     console.debug("Email login:", formData);
@@ -120,25 +139,31 @@ const Login = () => {
                 />
 
                 {/* Google Sign In */}
-                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                  <span className="bg-background text-muted-foreground relative z-10 px-2">
-                    or
-                  </span>
-                </div>
-                <GoogleOAuthProvider clientId="370259082711-8t6vtage248pl6vjaulcom3nve1qes1r.apps.googleusercontent.com">
-                  <div className="flex justify-center w-full">
-                    <GoogleLogin
-                      onSuccess={handleGoogleLogin}
-                      onError={() => console.log("Google Login Failed")}
-                      // useOneTap // Optional: show auto-login prompt
-                      theme="outline"
-                      type="standard"
-                      shape="circle"
-                      text="signin_with"
-                      size="large"
-                    />
-                  </div>
-                </GoogleOAuthProvider>
+                {googleProvider && (
+                  <>
+                    <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                      <span className="bg-background text-muted-foreground relative z-10 px-2">
+                        or
+                      </span>
+                    </div>
+                    <GoogleOAuthProvider
+                      clientId={googleProvider.client_id ?? ""}
+                    >
+                      <div className="flex justify-center w-full">
+                        <GoogleLogin
+                          onSuccess={handleGoogleLogin}
+                          onError={() => console.log("Google Login Failed")}
+                          // useOneTap // Optional: show auto-login prompt
+                          theme="outline"
+                          type="standard"
+                          shape="circle"
+                          text="signin_with"
+                          size="large"
+                        />
+                      </div>
+                    </GoogleOAuthProvider>
+                  </>
+                )}
               </>
             )}
 
