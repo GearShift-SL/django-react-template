@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from tenants.serializers import SimpleTenantSerializer, TenantUserSimpleSerializer
 
-from .models import User
+from .models import User, UserProfile
 
 
 class StartAuthRequestSerializer(serializers.Serializer):
@@ -88,18 +88,35 @@ class SessionStatusErrorSerializer(serializers.Serializer):
     detail = serializers.CharField()
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["avatar"]
+
+
 class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(read_only=True)
+
     class Meta:
         model = User
-        fields = ["pk", "email", "first_name", "last_name"]
-        read_only_fields = ["pk", "email"]
+        fields = ["pk", "email", "first_name", "last_name", "profile"]
+        read_only_fields = ["pk", "email", "profile"]
 
 
 class UserMeSerializer(serializers.ModelSerializer):
     tenant = SimpleTenantSerializer(read_only=True)
     tenant_user = TenantUserSimpleSerializer(read_only=True)
+    profile = UserProfileSerializer(read_only=True)
 
     class Meta:
         model = User
-        fields = ["pk", "email", "first_name", "last_name", "tenant", "tenant_user"]
-        read_only_fields = ["pk", "email", "tenant", "tenant_user"]
+        fields = [
+            "pk",
+            "email",
+            "first_name",
+            "last_name",
+            "tenant",
+            "tenant_user",
+            "profile",
+        ]
+        read_only_fields = ["pk", "email", "tenant", "tenant_user", "profile"]
