@@ -6,16 +6,26 @@ This file contains the signals for the authentication app.
 
 from django.dispatch import receiver
 from allauth.account.signals import user_signed_up, email_confirmed
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from tenants.models import Tenant, TenantUser
 from utils.loops import create_contact_task, update_or_create_contact_task
+from .models import UserProfile
 
 
 import logging
 
 log = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=get_user_model())
+def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Automatically create a UserProfile when a new User is created.
+    """
+    if created:
+        UserProfile.objects.create(user=instance)
 
 
 @receiver(user_signed_up)
