@@ -43,3 +43,24 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.email
+
+    def save(self, *args, **kwargs):
+        # Process avatar image if it's being uploaded or changed
+        if self.avatar:
+            # Check if this is a new upload or changed avatar
+            # We need to process it if: 1) it's a new instance, or 2) the avatar field has changed
+            try:
+                old_instance = UserProfile.objects.get(pk=self.pk)
+                avatar_changed = old_instance.avatar != self.avatar
+            except UserProfile.DoesNotExist:
+                # New instance, avatar needs processing
+                avatar_changed = True
+
+            if avatar_changed:
+                from .utils import process_avatar_image
+
+                processed_image = process_avatar_image(self.avatar)
+                if processed_image:
+                    self.avatar = processed_image
+
+        super().save(*args, **kwargs)
