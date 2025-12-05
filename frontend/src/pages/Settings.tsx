@@ -24,6 +24,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
+import { AvatarUpload } from "@/components/AvatarUpload";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -87,7 +88,21 @@ const Settings = () => {
             <TabsTrigger value="user">User Settings</TabsTrigger>
             <TabsTrigger value="team">Team Settings</TabsTrigger>
           </TabsList>
-          <TabsContent value="user" className="mt-6">
+          <TabsContent value="user" className="mt-6 space-y-6">
+            {/* Profile Picture Card */}
+            <Card className="max-w-lg">
+              <CardHeader>
+                <CardTitle>Profile Picture</CardTitle>
+                <CardDescription>
+                  Upload or update your profile picture.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AvatarUpload />
+              </CardContent>
+            </Card>
+
+            {/* Profile Information Card */}
             <Card className="max-w-lg">
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
