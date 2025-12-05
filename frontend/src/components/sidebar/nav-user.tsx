@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -89,6 +89,13 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
+            <DropdownMenuItem
+              onClick={() => navigate("/settings")}
+              className="hover:cursor-pointer"
+            >
+              <Settings />
+              Settings
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleLogout}
               className="hover:cursor-pointer"
