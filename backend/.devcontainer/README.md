@@ -7,6 +7,13 @@
 3. Make sure you have the dev containers extension installed
 4. Hit `F1` and then "DevContainer: Reopen in container"
 
+## Initial configuration
+
+When starting the devcontainer for the first time or when regenerating it, you will need to:
+
+1. Perform `pipenv install`
+2. Do `python manage.py migrate`
+
 ## Reseting the database
 
 There might be sometimes when you might mess up the django migrations and the migrations and database won't match, prompting you to reset the database.
