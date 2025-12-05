@@ -27,11 +27,14 @@ def on_user_signed_up(sender, request, user, **kwargs):
     log.debug(f"Request: {request}")
 
     # Create a tenant and tenant user for the current user
-    # Initially, we only have the user's email address, so we'll name the tenant after the user's email
-    tenant_name = f"{user.email.split('@')[0]}'s team"
+    # Use first name if available, otherwise fall back to email
+    if user.first_name:
+        tenant_name = f"{user.first_name}'s team"
+    else:
+        tenant_name = f"{user.email.split('@')[0]}'s team"
+
     tenant = Tenant.objects.create(name=tenant_name)
     TenantUser.objects.create(user=user, tenant=tenant, role="owner")
-
 
 
 @receiver(email_confirmed)
