@@ -2,12 +2,6 @@
 
 name: django-backend
 services:
-  redis:
-    image: redis:alpine
-    restart: no
-    networks:
-      - devnet
-
   postgres:
     image: postgres:16-bullseye
     restart: no
