@@ -1,17 +1,10 @@
 import { create } from "zustand";
 
-interface User {
-  pk: number;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  full_name?: string;
-  avatar?: string;
-}
+import type { UserMe } from "@/api/django/djangoAPI.schemas";
 
 interface UserStore {
-  user: User | undefined;
-  setUser: (user: User) => void;
+  user: (UserMe & { full_name?: string }) | undefined;
+  setUser: (user: UserMe & { full_name?: string }) => void;
   clearUser: () => void;
 }
 
