@@ -5,6 +5,7 @@ from django.utils import timezone
 
 # Local App
 from .managers import EmailUsernameUserManager
+from .utils import avatar_upload_path
 
 # User model in case we want to add more fields in the future
 # class User(AbstractUser):
@@ -39,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
 
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True)
 
     def __str__(self):
         return self.user.email
@@ -59,7 +60,7 @@ class UserProfile(models.Model):
             if avatar_changed:
                 from .utils import process_avatar_image
 
-                processed_image = process_avatar_image(self.avatar)
+                processed_image = process_avatar_image(self.avatar, self.user.pk)
                 if processed_image:
                     self.avatar = processed_image
 
