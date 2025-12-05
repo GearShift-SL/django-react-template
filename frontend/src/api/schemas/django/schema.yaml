@@ -1,0 +1,1180 @@
+openapi: 3.0.3
+info:
+  title: Django API
+  version: 1.0.0
+  description: API for my project
+paths:
+  /auth/{client}/code/confirm/:
+    post:
+      operationId: auth_confirm_code
+      description: Use this endpoint to pass along the received one-time "special"
+        login code.
+      summary: Confirm login code
+      parameters:
+      - in: path
+        name: client
+        schema:
+          type: string
+          enum:
+          - app
+          - browser
+        description: The type of client accessing the API.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmRequestRequest'
+            examples:
+              ConfirmCode:
+                value:
+                  code: '123456'
+                summary: Confirm code
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmRequestRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeConfirmResponse'
+          description: Authenticated by code.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeConfirmError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeConfirmError'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeConfirmError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeConfirmError'
+          description: ''
+  /auth/{client}/provider/token/:
+    post:
+      operationId: auth_provider_token
+      description: Authenticate using a third-party provider token (e.g., Google).
+        `process=login` logs in (or signs up) the user. `process=connect` links the
+        provider to the currently authenticated user. For mobile (`client=app`), send
+        `X-Session-Token` header from the prior app session bootstrap.
+      summary: Provider token
+      parameters:
+      - in: header
+        name: X-Session-Token
+        schema:
+          type: string
+        description: Session token. Only needed when client is 'app'.
+      - in: path
+        name: client
+        schema:
+          type: string
+          enum:
+          - app
+          - browser
+        description: The type of client accessing the API.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderTokenRequestRequest'
+            examples:
+              GoogleLogin(browser):
+                value:
+                  provider: google
+                  process: login
+                  token:
+                    id_token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+                summary: Google login (browser)
+              GoogleConnect(app):
+                value:
+                  provider: google
+                  process: connect
+                  token:
+                    access_token: ya29.a0ARrdaM...
+                summary: Google connect (app)
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProviderTokenRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProviderTokenRequestRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenResponse'
+          description: The user is authenticated.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderTokenError'
+          description: ''
+  /auth/{client}/session/:
+    get:
+      operationId: auth_session_status
+      description: Retrieve information about the authentication status for the current
+        session.
+      summary: Get authentication status
+      parameters:
+      - in: header
+        name: X-Session-Token
+        schema:
+          type: string
+        description: Only needed when client is 'app'.
+      - in: path
+        name: client
+        schema:
+          type: string
+          enum:
+          - app
+          - browser
+        description: The type of client accessing the API.
+        required: true
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusResponse'
+          description: The user is authenticated.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusError'
+          description: ''
+        '410':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusError'
+          description: ''
+    delete:
+      operationId: auth_logout
+      description: Logs out the user from the current session.
+      summary: Logout
+      parameters:
+      - in: header
+        name: X-Session-Token
+        schema:
+          type: string
+        description: Only needed when client is 'app'.
+      - in: path
+        name: client
+        schema:
+          type: string
+          enum:
+          - app
+          - browser
+        description: The type of client accessing the API.
+        required: true
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusResponse'
+          description: Logged out (or no-op if already logged out).
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStatusError'
+          description: ''
+  /auth/{client}/start/:
+    post:
+      operationId: auth_start
+      description: If the identifier belongs to an existing user, request a one-time
+        login code. Otherwise, create the user (per your Allauth config) and then
+        proceed.
+      summary: Request login code or sign up
+      parameters:
+      - in: path
+        name: client
+        schema:
+          type: string
+          enum:
+          - app
+          - browser
+        description: The type of client accessing the API.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartAuthRequestRequest'
+            examples:
+              StartAuth(existingUserByEmail):
+                value:
+                  email: ada@example.com
+                summary: Start auth (existing user by email)
+              StartAuth(newUserByEmail):
+                value:
+                  email: newuser@example.com
+                summary: Start auth (new user by email)
+              StartAuth(existingUserByPhone):
+                value:
+                  phone: '+34123456789'
+                summary: Start auth (existing user by phone)
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StartAuthRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StartAuthRequestRequest'
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthResponse'
+          description: Auth flow started or completed
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthError'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthError'
+          description: ''
+  /auth/providers/:
+    get:
+      operationId: auth_providers_list
+      description: Returns enabled Allauth providers and their client IDs.
+      summary: List social providers
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvidersListResponse'
+          description: List of available providers and their client IDs.
+  /auth/user/me/:
+    get:
+      operationId: auth_user_me_retrieve
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMe'
+          description: ''
+    put:
+      operationId: auth_user_me_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_user_me_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /tenants/invitations/:
+    get:
+      operationId: tenants_invitations_list
+      description: A viewset that provides the `create` and `list` actions.
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
+          description: ''
+    post:
+      operationId: tenants_invitations_create
+      description: A viewset that provides the `create` and `list` actions.
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InvitationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InvitationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+          description: ''
+  /tenants/tenant-logo/:
+    get:
+      operationId: tenants_tenant_logo_retrieve
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLogo'
+          description: ''
+    post:
+      operationId: tenants_tenant_logo_create
+      tags:
+      - tenants
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantLogoRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLogo'
+          description: ''
+    delete:
+      operationId: tenants_tenant_logo_destroy
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /tenants/tenant-users/:
+    get:
+      operationId: tenants_tenant_users_list
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantUserList'
+          description: ''
+  /tenants/tenant-users/{id}/:
+    get:
+      operationId: tenants_tenant_users_retrieve
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tenant user.
+        required: true
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+    put:
+      operationId: tenants_tenant_users_update
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tenant user.
+        required: true
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+    patch:
+      operationId: tenants_tenant_users_partial_update
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tenant user.
+        required: true
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+    delete:
+      operationId: tenants_tenant_users_destroy
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tenant user.
+        required: true
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /tenants/tenant-users/me/:
+    get:
+      operationId: tenants_tenant_users_me_retrieve
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+    put:
+      operationId: tenants_tenant_users_me_update
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantUserUpdateRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+    patch:
+      operationId: tenants_tenant_users_me_partial_update
+      description: List, Retrieve and Update viewset for the TenantUser model.
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUserDetail'
+          description: ''
+  /tenants/tenant/me/:
+    get:
+      operationId: tenants_tenant_me_retrieve
+      tags:
+      - tenants
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+    put:
+      operationId: tenants_tenant_me_update
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenantRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+    patch:
+      operationId: tenants_tenant_me_partial_update
+      tags:
+      - tenants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+components:
+  schemas:
+    CodeConfirmError:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+      required:
+      - code
+      - detail
+    CodeConfirmRequestRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+      required:
+      - code
+    CodeConfirmResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          additionalProperties: {}
+      required:
+      - user
+    Invitation:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        invited_by:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          nullable: true
+        is_accepted:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - email
+      - invited_by
+      - is_accepted
+      - updated_at
+    InvitationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+      required:
+      - email
+    PatchedTenantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        logo:
+          type: string
+          format: binary
+        website:
+          type: string
+          format: uri
+          maxLength: 200
+    PatchedTenantUserUpdateRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    PatchedUserRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+    ProcessEnum:
+      enum:
+      - login
+      - connect
+      type: string
+      description: |-
+        * `login` - login
+        * `connect` - connect
+    Provider:
+      type: object
+      properties:
+        provider:
+          type: string
+        client_id:
+          type: string
+      required:
+      - provider
+    ProviderTokenError:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+      required:
+      - code
+      - detail
+    ProviderTokenRequestRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+          minLength: 1
+        process:
+          $ref: '#/components/schemas/ProcessEnum'
+        token:
+          type: object
+          additionalProperties: {}
+      required:
+      - process
+      - provider
+      - token
+    ProviderTokenResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          additionalProperties: {}
+      required:
+      - user
+    ProvidersListResponse:
+      type: object
+      properties:
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+      required:
+      - providers
+    RoleEnum:
+      enum:
+      - owner
+      - admin
+      - user
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `admin` - Admin
+        * `user` - User
+    SessionStatusError:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+      required:
+      - code
+      - detail
+    SessionStatusResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          additionalProperties: {}
+        is_authenticated:
+          type: boolean
+    SimpleTenant:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+      - pk
+    StartAuthError:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+      required:
+      - code
+      - detail
+    StartAuthRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+    StartAuthResponse:
+      type: object
+      description: |-
+        Shape this to reflect your actual auth success payload (user, tokens, etc.).
+        This is only for documentation; the real response comes from Allauth.
+      properties:
+        user:
+          type: object
+          additionalProperties: {}
+      required:
+      - user
+    Tenant:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        logo:
+          type: string
+          format: uri
+        website:
+          type: string
+          format: uri
+          maxLength: 200
+        tenant_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantUserList'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - name
+      - pk
+      - slug
+      - tenant_users
+      - updated_at
+    TenantLogo:
+      type: object
+      properties:
+        image:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - image
+    TenantLogoRequest:
+      type: object
+      properties:
+        image:
+          type: string
+          format: binary
+      required:
+      - image
+    TenantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        logo:
+          type: string
+          format: binary
+        website:
+          type: string
+          format: uri
+          maxLength: 200
+      required:
+      - name
+    TenantUserDetail:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - pk
+      - role
+      - updated_at
+    TenantUserList:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - pk
+      - role
+      - updated_at
+    TenantUserSimple:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - pk
+    TenantUserUpdateRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    User:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+      required:
+      - email
+      - pk
+    UserMe:
+      type: object
+      properties:
+        pk:
+          type: integer
+          readOnly: true
+          title: ID
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        tenant:
+          allOf:
+          - $ref: '#/components/schemas/SimpleTenant'
+          readOnly: true
+        tenant_user:
+          allOf:
+          - $ref: '#/components/schemas/TenantUserSimple'
+          readOnly: true
+      required:
+      - email
+      - pk
+      - tenant
+      - tenant_user
+    UserRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+servers:
+- url: /
+  description: Current server
