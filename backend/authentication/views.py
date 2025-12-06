@@ -448,20 +448,6 @@ class UserViewSet(GenericViewSet):
         serializer.save()
         return Response(UserMeSerializer(request.user).data)
 
-    @extend_schema(
-        operation_id="user_profile",
-        request=UserProfileSerializer,
-        responses={
-            200: UserProfileSerializer,
-            400: OpenApiResponse(description="Bad request - validation error"),
-            401: OpenApiResponse(description="Unauthorized - authentication required"),
-        },
-        summary="Get or update user profile",
-        description=(
-            "Retrieve or update the current user's profile information including avatar. "
-            "Use multipart/form-data to upload files."
-        ),
-    )
     @action(detail=False, methods=["get", "put", "patch"], url_path="me/profile")
     def profile(self, request):
         """
