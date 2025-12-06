@@ -2,12 +2,13 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
+import uuid
 
 
 def avatar_upload_path(instance, filename):
     """
     Generate upload path for avatar images.
-    Format: avatars/<user_pk>_avatar.webp
+    Format: avatars/<user_pk>_<random_uid>_avatar.webp
 
     Args:
         instance: UserProfile instance
@@ -17,7 +18,8 @@ def avatar_upload_path(instance, filename):
         str: Upload path
     """
     user_pk = instance.user.pk
-    return f"avatars/{user_pk}_avatar.webp"
+    random_uid = uuid.uuid4().hex[:8]  # Use first 8 characters of UUID
+    return f"avatars/{user_pk}_{random_uid}_avatar.webp"
 
 
 def process_avatar_image(image_field, user_pk):
@@ -26,7 +28,7 @@ def process_avatar_image(image_field, user_pk):
     - Convert to WebP format
     - Resize to max 300x300px while maintaining aspect ratio
     - Compress for optimal file size
-    - Rename to <user_pk>_avatar.webp
+    - Rename to <user_pk>_<random_uid>_avatar.webp
 
     Args:
         image_field: Django ImageField or uploaded file
@@ -37,6 +39,9 @@ def process_avatar_image(image_field, user_pk):
     """
     if not image_field:
         return None
+
+    # Generate a random UID for this upload
+    random_uid = uuid.uuid4().hex[:8]  # Use first 8 characters of UUID
 
     # Open the image
     img = Image.open(image_field)
@@ -74,8 +79,8 @@ def process_avatar_image(image_field, user_pk):
     img.save(output, format="WEBP", quality=85, method=6)
     output.seek(0)
 
-    # Use user pk for filename
-    new_filename = f"{user_pk}_avatar.webp"
+    # Use user pk and random UID for filename
+    new_filename = f"{user_pk}_{random_uid}_avatar.webp"
 
     # Create a new InMemoryUploadedFile
     return InMemoryUploadedFile(
