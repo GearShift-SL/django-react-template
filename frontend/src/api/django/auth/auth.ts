@@ -2,7 +2,6 @@
 import type {
   CodeConfirmRequestRequest,
   CodeConfirmResponse,
-  PatchedUserProfileRequest,
   PatchedUserRequest,
   ProviderTokenRequestRequest,
   ProviderTokenResponse,
@@ -12,8 +11,6 @@ import type {
   StartAuthResponse,
   User,
   UserMe,
-  UserProfile,
-  UserProfileRequest,
   UserRequest,
 } from "../djangoAPI.schemas";
 
@@ -153,49 +150,49 @@ export const authUserMePartialUpdate = (
   );
 };
 /**
- * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
- * @summary Get or update user profile
+ * GET/PUT/PATCH /auth/{client}/user/me/profile/
+Manage the current user's profile (avatar, etc.)
  */
-export const userProfile = (
-  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+export const authUserMeProfileRetrieve = (
+  options?: SecondParameter<typeof customAxiosInstance<User>>,
 ) => {
-  return customAxiosInstance<UserProfile>(
+  return customAxiosInstance<User>(
     { url: `/auth/user/me/profile/`, method: "GET" },
     options,
   );
 };
 /**
- * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
- * @summary Get or update user profile
+ * GET/PUT/PATCH /auth/{client}/user/me/profile/
+Manage the current user's profile (avatar, etc.)
  */
-export const userProfile3 = (
-  userProfileRequest: UserProfileRequest,
-  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+export const authUserMeProfileUpdate = (
+  userRequest: UserRequest,
+  options?: SecondParameter<typeof customAxiosInstance<User>>,
 ) => {
-  return customAxiosInstance<UserProfile>(
+  return customAxiosInstance<User>(
     {
       url: `/auth/user/me/profile/`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      data: userProfileRequest,
+      data: userRequest,
     },
     options,
   );
 };
 /**
- * Retrieve or update the current user's profile information including avatar. Use multipart/form-data to upload files.
- * @summary Get or update user profile
+ * GET/PUT/PATCH /auth/{client}/user/me/profile/
+Manage the current user's profile (avatar, etc.)
  */
-export const userProfile2 = (
-  patchedUserProfileRequest: PatchedUserProfileRequest,
-  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+export const authUserMeProfilePartialUpdate = (
+  patchedUserRequest: PatchedUserRequest,
+  options?: SecondParameter<typeof customAxiosInstance<User>>,
 ) => {
-  return customAxiosInstance<UserProfile>(
+  return customAxiosInstance<User>(
     {
       url: `/auth/user/me/profile/`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      data: patchedUserProfileRequest,
+      data: patchedUserRequest,
     },
     options,
   );
@@ -227,12 +224,12 @@ export type AuthUserMeUpdateResult = NonNullable<
 export type AuthUserMePartialUpdateResult = NonNullable<
   Awaited<ReturnType<typeof authUserMePartialUpdate>>
 >;
-export type UserProfileResult = NonNullable<
-  Awaited<ReturnType<typeof userProfile>>
+export type AuthUserMeProfileRetrieveResult = NonNullable<
+  Awaited<ReturnType<typeof authUserMeProfileRetrieve>>
 >;
-export type UserProfile3Result = NonNullable<
-  Awaited<ReturnType<typeof userProfile3>>
+export type AuthUserMeProfileUpdateResult = NonNullable<
+  Awaited<ReturnType<typeof authUserMeProfileUpdate>>
 >;
-export type UserProfile2Result = NonNullable<
-  Awaited<ReturnType<typeof userProfile2>>
+export type AuthUserMeProfilePartialUpdateResult = NonNullable<
+  Awaited<ReturnType<typeof authUserMeProfilePartialUpdate>>
 >;

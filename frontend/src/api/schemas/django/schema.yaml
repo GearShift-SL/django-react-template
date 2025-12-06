@@ -405,10 +405,10 @@ paths:
           description: ''
   /auth/user/me/profile/:
     get:
-      operationId: user_profile
-      description: Retrieve or update the current user's profile information including
-        avatar. Use multipart/form-data to upload files.
-      summary: Get or update user profile
+      operationId: auth_user_me_profile_retrieve
+      description: |-
+        GET/PUT/PATCH /auth/{client}/user/me/profile/
+        Manage the current user's profile (avatar, etc.)
       tags:
       - auth
       security:
@@ -418,30 +418,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/User'
           description: ''
-        '400':
-          description: Bad request - validation error
-        '401':
-          description: Unauthorized - authentication required
     put:
-      operationId: user_profile_3
-      description: Retrieve or update the current user's profile information including
-        avatar. Use multipart/form-data to upload files.
-      summary: Get or update user profile
+      operationId: auth_user_me_profile_update
+      description: |-
+        GET/PUT/PATCH /auth/{client}/user/me/profile/
+        Manage the current user's profile (avatar, etc.)
       tags:
       - auth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfileRequest'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserProfileRequest'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserProfileRequest'
+              $ref: '#/components/schemas/UserRequest'
       security:
       - cookieAuth: []
       responses:
@@ -449,30 +445,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/User'
           description: ''
-        '400':
-          description: Bad request - validation error
-        '401':
-          description: Unauthorized - authentication required
     patch:
-      operationId: user_profile_2
-      description: Retrieve or update the current user's profile information including
-        avatar. Use multipart/form-data to upload files.
-      summary: Get or update user profile
+      operationId: auth_user_me_profile_partial_update
+      description: |-
+        GET/PUT/PATCH /auth/{client}/user/me/profile/
+        Manage the current user's profile (avatar, etc.)
       tags:
       - auth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUserProfileRequest'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUserProfileRequest'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUserProfileRequest'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - cookieAuth: []
       responses:
@@ -480,12 +472,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/User'
           description: ''
-        '400':
-          description: Bad request - validation error
-        '401':
-          description: Unauthorized - authentication required
   /tenants/invitations/:
     get:
       operationId: tenants_invitations_list
@@ -908,13 +896,6 @@ components:
       properties:
         role:
           $ref: '#/components/schemas/RoleEnum'
-    PatchedUserProfileRequest:
-      type: object
-      properties:
-        avatar:
-          type: string
-          format: binary
-          nullable: true
     PatchedUserRequest:
       type: object
       properties:
