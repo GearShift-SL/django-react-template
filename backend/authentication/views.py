@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -448,26 +449,23 @@ class UserViewSet(GenericViewSet):
         serializer.save()
         return Response(UserMeSerializer(request.user).data)
 
-    @extend_schema(
-        request=UserProfileSerializer,
-        responses={
-            200: UserProfileSerializer,
-            400: OpenApiResponse(description="Bad request - validation error"),
-            401: OpenApiResponse(description="Unauthorized - authentication required"),
-        },
-        summary="Get or update user profile",
-        description=(
-            "Retrieve or update the current user's profile information including avatar. "
-            "Use multipart/form-data to upload files."
-        ),
-    )
-    @action(detail=False, methods=["get", "put", "patch"], url_path="me/profile")
-    def profile(self, request):
-        """
-        GET/PUT/PATCH /auth/{client}/user/me/profile/
-        Manage the current user's profile (avatar, etc.)
-        """
-        # Get or create the profile for the current user
+
+class UserProfileViewSet(GenericViewSet):
+
+    parser_classes = [MultiPartParser]
+    serializer_class = UserProfileSerializer
+
+    def get_queryset(self):
+        # Scope to the current user only
+        return UserProfile.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if getattr(self, "action", None) == "me" and self.request.method == "GET":
+            return UserProfileSerializer
+        return UserProfileSerializer
+
+    @action(detail=False, methods=["get", "put", "patch"])
+    def me(self, request):
         profile, created = UserProfile.objects.get_or_create(user=request.user)
 
         if request.method == "GET":

@@ -10,11 +10,13 @@ from .views import (
     StartAuthView,
     UserViewSet,
     SessionView,
+    UserProfileViewSet,
 )
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r"user", UserViewSet, basename="user")
+router.register(r"profile", UserProfileViewSet, basename="profile")
 
 urlpatterns: list[URLPattern] = [
     path("<str:client>/start/", StartAuthView.as_view(), name="auth-start"),
