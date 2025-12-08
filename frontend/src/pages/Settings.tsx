@@ -82,89 +82,91 @@ const Settings = () => {
 
   return (
     <SideBarLayout title="Settings">
-      <div className="flex flex-col gap-6">
-        <Tabs defaultValue="user" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="user">User Settings</TabsTrigger>
-            <TabsTrigger value="team">Team Settings</TabsTrigger>
-          </TabsList>
-          <TabsContent value="user" className="mt-6 space-y-6">
-            {/* Profile Picture Card */}
-            <Card className="max-w-lg">
-              <CardHeader>
-                <CardTitle>Profile Picture</CardTitle>
-                <CardDescription>
-                  Upload or update your profile picture.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AvatarUpload />
-              </CardContent>
-            </Card>
+      <div className="flex w-full justify-center">
+        <div id="settings-container" className="flex flex-col gap-6">
+          <Tabs defaultValue="user" className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="user">User Settings</TabsTrigger>
+              <TabsTrigger value="team">Team Settings</TabsTrigger>
+            </TabsList>
+            <TabsContent value="user" className="mt-6 space-y-6">
+              {/* Profile Picture Card */}
+              <Card className="max-w-lg">
+                <CardHeader>
+                  <CardTitle>Profile Picture</CardTitle>
+                  <CardDescription>
+                    Upload or update your profile picture.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AvatarUpload />
+                </CardContent>
+              </Card>
 
-            {/* Profile Information Card */}
-            <Card className="max-w-lg">
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your personal information.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="first_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="last_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button
-                      type="submit"
-                      className="hover:cursor-pointer"
-                      loading={isSubmitting}
+              {/* Profile Information Card */}
+              <Card className="max-w-lg">
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>
+                    Update your personal information.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-4"
                     >
-                      Save Changes
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="team" className="mt-6">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Team Settings</h2>
-              <p className="text-muted-foreground">
-                Manage your team settings and member permissions.
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
+                      <FormField
+                        control={form.control}
+                        name="first_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="last_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="hover:cursor-pointer"
+                        loading={isSubmitting}
+                      >
+                        Save Changes
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="team" className="mt-6">
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold">Team Settings</h2>
+                <p className="text-muted-foreground">
+                  Manage your team settings and member permissions.
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </SideBarLayout>
   );
