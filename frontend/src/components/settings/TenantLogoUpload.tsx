@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Camera, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
-  tenantsTenantLogoRetrieve,
   tenantsTenantLogoCreate,
   tenantsTenantLogoDestroy,
   tenantsTenantMeRetrieve
