@@ -1,11 +1,12 @@
 import { create } from "zustand";
 
-import type { UserMe } from "@/api/django/djangoAPI.schemas";
+import type { SimpleTenant, UserMe } from "@/api/django/djangoAPI.schemas";
 
 interface UserStore {
   user: (UserMe & { full_name?: string }) | undefined;
   setUser: (user: UserMe & { full_name?: string }) => void;
   updateAvatar: (avatar: string | null) => void;
+  updateTenant: (tenant: SimpleTenant) => void;
   clearUser: () => void;
 }
 
@@ -34,6 +35,17 @@ export const useUserStore = create<UserStore>((set, get) => ({
             ...currentUser.profile,
             avatar
           }
+        }
+      });
+    }
+  },
+  updateTenant: (tenant) => {
+    const currentUser = get().user;
+    if (currentUser) {
+      set({
+        user: {
+          ...currentUser,
+          tenant
         }
       });
     }

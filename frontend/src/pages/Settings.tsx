@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
+import { TenantSettings } from "@/components/settings/TenantSettings";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -158,12 +159,7 @@ const Settings = () => {
               </Card>
             </TabsContent>
             <TabsContent value="team" className="mt-6">
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Team Settings</h2>
-                <p className="text-muted-foreground">
-                  Manage your team settings and member permissions.
-                </p>
-              </div>
+              <TenantSettings />
             </TabsContent>
           </Tabs>
         </div>
