@@ -324,6 +324,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/StartAuthError'
           description: ''
+  /auth/profile/me/:
+    get:
+      operationId: auth_profile_me_retrieve
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    put:
+      operationId: auth_profile_me_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: auth_profile_me_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
   /auth/providers/:
     get:
       operationId: auth_providers_list
@@ -381,77 +431,6 @@ paths:
           description: ''
     patch:
       operationId: auth_user_me_partial_update
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUserRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-  /auth/user/me/profile/:
-    get:
-      operationId: auth_user_me_profile_retrieve
-      description: |-
-        GET/PUT/PATCH /auth/{client}/user/me/profile/
-        Manage the current user's profile (avatar, etc.)
-      tags:
-      - auth
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-    put:
-      operationId: auth_user_me_profile_update
-      description: |-
-        GET/PUT/PATCH /auth/{client}/user/me/profile/
-        Manage the current user's profile (avatar, etc.)
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-    patch:
-      operationId: auth_user_me_profile_partial_update
-      description: |-
-        GET/PUT/PATCH /auth/{client}/user/me/profile/
-        Manage the current user's profile (avatar, etc.)
       tags:
       - auth
       requestBody:
@@ -896,6 +875,13 @@ components:
       properties:
         role:
           $ref: '#/components/schemas/RoleEnum'
+    PatchedUserProfileRequest:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: binary
+          nullable: true
     PatchedUserRequest:
       type: object
       properties:

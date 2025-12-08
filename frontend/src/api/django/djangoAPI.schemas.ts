@@ -49,6 +49,11 @@ export interface PatchedTenantUserUpdateRequest {
   role?: RoleEnum;
 }
 
+export interface PatchedUserProfileRequest {
+  /** @nullable */
+  avatar?: Blob | null;
+}
+
 export interface PatchedUserRequest {
   /** @maxLength 30 */
   first_name?: string;

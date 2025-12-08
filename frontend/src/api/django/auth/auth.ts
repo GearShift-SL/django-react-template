@@ -2,6 +2,7 @@
 import type {
   CodeConfirmRequestRequest,
   CodeConfirmResponse,
+  PatchedUserProfileRequest,
   PatchedUserRequest,
   ProviderTokenRequestRequest,
   ProviderTokenResponse,
@@ -11,6 +12,8 @@ import type {
   StartAuthResponse,
   User,
   UserMe,
+  UserProfile,
+  UserProfileRequest,
   UserRequest,
 } from "../djangoAPI.schemas";
 
@@ -101,6 +104,58 @@ export const authStart = (
     options,
   );
 };
+export const authProfileMeRetrieve = (
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  return customAxiosInstance<UserProfile>(
+    { url: `/auth/profile/me/`, method: "GET" },
+    options,
+  );
+};
+export const authProfileMeUpdate = (
+  userProfileRequest: UserProfileRequest,
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  const formData = new FormData();
+  if (
+    userProfileRequest.avatar !== undefined &&
+    userProfileRequest.avatar !== null
+  ) {
+    formData.append(`avatar`, userProfileRequest.avatar);
+  }
+
+  return customAxiosInstance<UserProfile>(
+    {
+      url: `/auth/profile/me/`,
+      method: "PUT",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+    },
+    options,
+  );
+};
+export const authProfileMePartialUpdate = (
+  patchedUserProfileRequest: PatchedUserProfileRequest,
+  options?: SecondParameter<typeof customAxiosInstance<UserProfile>>,
+) => {
+  const formData = new FormData();
+  if (
+    patchedUserProfileRequest.avatar !== undefined &&
+    patchedUserProfileRequest.avatar !== null
+  ) {
+    formData.append(`avatar`, patchedUserProfileRequest.avatar);
+  }
+
+  return customAxiosInstance<UserProfile>(
+    {
+      url: `/auth/profile/me/`,
+      method: "PATCH",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+    },
+    options,
+  );
+};
 /**
  * Returns enabled Allauth providers and their client IDs.
  * @summary List social providers
@@ -149,54 +204,6 @@ export const authUserMePartialUpdate = (
     options,
   );
 };
-/**
- * GET/PUT/PATCH /auth/{client}/user/me/profile/
-Manage the current user's profile (avatar, etc.)
- */
-export const authUserMeProfileRetrieve = (
-  options?: SecondParameter<typeof customAxiosInstance<User>>,
-) => {
-  return customAxiosInstance<User>(
-    { url: `/auth/user/me/profile/`, method: "GET" },
-    options,
-  );
-};
-/**
- * GET/PUT/PATCH /auth/{client}/user/me/profile/
-Manage the current user's profile (avatar, etc.)
- */
-export const authUserMeProfileUpdate = (
-  userRequest: UserRequest,
-  options?: SecondParameter<typeof customAxiosInstance<User>>,
-) => {
-  return customAxiosInstance<User>(
-    {
-      url: `/auth/user/me/profile/`,
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      data: userRequest,
-    },
-    options,
-  );
-};
-/**
- * GET/PUT/PATCH /auth/{client}/user/me/profile/
-Manage the current user's profile (avatar, etc.)
- */
-export const authUserMeProfilePartialUpdate = (
-  patchedUserRequest: PatchedUserRequest,
-  options?: SecondParameter<typeof customAxiosInstance<User>>,
-) => {
-  return customAxiosInstance<User>(
-    {
-      url: `/auth/user/me/profile/`,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      data: patchedUserRequest,
-    },
-    options,
-  );
-};
 export type AuthConfirmCodeResult = NonNullable<
   Awaited<ReturnType<typeof authConfirmCode>>
 >;
@@ -212,6 +219,15 @@ export type AuthLogoutResult = NonNullable<
 export type AuthStartResult = NonNullable<
   Awaited<ReturnType<typeof authStart>>
 >;
+export type AuthProfileMeRetrieveResult = NonNullable<
+  Awaited<ReturnType<typeof authProfileMeRetrieve>>
+>;
+export type AuthProfileMeUpdateResult = NonNullable<
+  Awaited<ReturnType<typeof authProfileMeUpdate>>
+>;
+export type AuthProfileMePartialUpdateResult = NonNullable<
+  Awaited<ReturnType<typeof authProfileMePartialUpdate>>
+>;
 export type AuthProvidersListResult = NonNullable<
   Awaited<ReturnType<typeof authProvidersList>>
 >;
@@ -223,13 +239,4 @@ export type AuthUserMeUpdateResult = NonNullable<
 >;
 export type AuthUserMePartialUpdateResult = NonNullable<
   Awaited<ReturnType<typeof authUserMePartialUpdate>>
->;
-export type AuthUserMeProfileRetrieveResult = NonNullable<
-  Awaited<ReturnType<typeof authUserMeProfileRetrieve>>
->;
-export type AuthUserMeProfileUpdateResult = NonNullable<
-  Awaited<ReturnType<typeof authUserMeProfileUpdate>>
->;
-export type AuthUserMeProfilePartialUpdateResult = NonNullable<
-  Awaited<ReturnType<typeof authUserMeProfilePartialUpdate>>
 >;
