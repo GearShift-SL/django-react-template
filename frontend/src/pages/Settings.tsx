@@ -24,7 +24,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
-import { AvatarUpload } from "@/components/AvatarUpload";
+import { AvatarUpload } from "@/components/settings/AvatarUpload";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
