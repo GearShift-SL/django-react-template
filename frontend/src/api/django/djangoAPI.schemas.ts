@@ -20,8 +20,9 @@ export interface Invitation {
   email: string;
   readonly invited_by: number;
   /** @nullable */
-  readonly code: string | null;
-  readonly is_accepted: boolean;
+  readonly last_sent_at: string | null;
+  /** @nullable */
+  readonly accepted_at: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -184,6 +185,9 @@ export interface TenantRequest {
 export interface TenantUserList {
   readonly pk: number;
   readonly role: RoleEnum;
+  email: string;
+  first_name: string;
+  last_name: string;
   readonly created_at: string;
   readonly updated_at: string;
 }

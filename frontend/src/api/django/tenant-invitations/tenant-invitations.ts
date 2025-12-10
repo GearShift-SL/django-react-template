@@ -33,9 +33,25 @@ export const tenantsInvitationsCreate = (
     options,
   );
 };
+/**
+ * Resend an invitation email.
+Returns 403 if the last invitation was sent less than 24 hours ago.
+ */
+export const tenantsInvitationsResendCreate = (
+  id: number,
+  options?: SecondParameter<typeof customAxiosInstance<Invitation>>,
+) => {
+  return customAxiosInstance<Invitation>(
+    { url: `/tenants/invitations/${id}/resend/`, method: "POST" },
+    options,
+  );
+};
 export type TenantsInvitationsListResult = NonNullable<
   Awaited<ReturnType<typeof tenantsInvitationsList>>
 >;
 export type TenantsInvitationsCreateResult = NonNullable<
   Awaited<ReturnType<typeof tenantsInvitationsCreate>>
+>;
+export type TenantsInvitationsResendCreateResult = NonNullable<
+  Awaited<ReturnType<typeof tenantsInvitationsResendCreate>>
 >;

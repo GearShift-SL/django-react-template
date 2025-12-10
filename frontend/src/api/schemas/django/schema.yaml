@@ -496,6 +496,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invitation'
           description: ''
+  /tenants/invitations/{id}/resend/:
+    post:
+      operationId: tenants_invitations_resend_create
+      description: |-
+        Resend an invitation email.
+        Returns 403 if the last invitation was sent less than 24 hours ago.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this invitation.
+        required: true
+      tags:
+      - Tenant Invitations
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+          description: ''
   /tenants/tenant-logo/:
     get:
       operationId: tenants_tenant_logo_retrieve
@@ -682,13 +706,16 @@ components:
         invited_by:
           type: integer
           readOnly: true
-        code:
+        last_sent_at:
           type: string
+          format: date-time
           readOnly: true
           nullable: true
-        is_accepted:
-          type: boolean
+        accepted_at:
+          type: string
+          format: date-time
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -698,11 +725,11 @@ components:
           format: date-time
           readOnly: true
       required:
-      - code
+      - accepted_at
       - created_at
       - email
       - invited_by
-      - is_accepted
+      - last_sent_at
       - updated_at
     InvitationRequest:
       type: object
@@ -958,6 +985,13 @@ components:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           readOnly: true
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
         created_at:
           type: string
           format: date-time
@@ -968,6 +1002,9 @@ components:
           readOnly: true
       required:
       - created_at
+      - email
+      - first_name
+      - last_name
       - pk
       - role
       - updated_at
