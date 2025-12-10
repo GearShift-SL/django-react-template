@@ -177,6 +177,22 @@ class TenantUserViewSet(
 
         return super().update(request, *args, **kwargs)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Prevent deletion of owners - they must transfer ownership first
+        if instance.role == "owner":
+            return Response(
+                {
+                    "detail": _(
+                        "Cannot delete the owner. Transfer ownership to another user first."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().destroy(request, *args, **kwargs)
+
 
 @extend_schema_view(
     create=extend_schema(tags=["Tenant Invitations"]),
