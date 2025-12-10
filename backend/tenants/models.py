@@ -84,13 +84,15 @@ class TenantUser(models.Model):
 
 
 # Invitations model to store the invitations sent to users by owners or admins
-class Invitation(models.Model):
+class Invitation(TenantModel):
     # The email of the user to be invited
     email = models.EmailField(unique=True)
 
     # The user who sent the invitation
     invited_by = models.ForeignKey(
-        TenantUser, on_delete=models.CASCADE, related_name="invitations_sent"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="invitations_sent",
     )
 
     # Last sent at date and time
