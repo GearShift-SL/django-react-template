@@ -128,6 +128,11 @@ export function TenantUsersTable() {
     return fullName || "—";
   };
 
+  const getUserNameOrEmail = (user: TenantUserList) => {
+    const fullName = `${user.first_name} ${user.last_name}`.trim();
+    return fullName || user.email || "—";
+  };
+
   return (
     <>
       <Card>
@@ -229,7 +234,8 @@ export function TenantUsersTable() {
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
             <DialogDescription>
-              Change the role for {editingUser ? getUserName(editingUser) : ""}.
+              Change the role for{" "}
+              {editingUser ? getUserNameOrEmail(editingUser) : ""}.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
