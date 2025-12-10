@@ -26,8 +26,7 @@ import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
-import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
-import { RoleEnum, type Tenant } from "@/api/django/djangoAPI.schemas";
+import { RoleEnum } from "@/api/django/djangoAPI.schemas";
 import { useTenantStore } from "@/stores/TenantStore";
 
 /* ----------------------------------- Zod ---------------------------------- */
