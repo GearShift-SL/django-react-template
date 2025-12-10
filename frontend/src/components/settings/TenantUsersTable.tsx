@@ -31,6 +31,11 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -173,15 +178,37 @@ export function TenantUsersTable() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditRole(user)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit role</span>
-                      </Button>
+                      {user.role === "owner" ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-block">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled
+                                className="h-8 w-8 p-0"
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit role</span>
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="max-w-[200px]">
+                            To modify the owner, transfer ownership to another
+                            user first
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditRole(user)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit role</span>
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
