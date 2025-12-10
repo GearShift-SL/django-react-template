@@ -26,6 +26,8 @@ import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
+import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
+import type { Tenant } from "@/api/django/djangoAPI.schemas";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -38,6 +40,7 @@ type UserProfileValues = z.infer<typeof UserProfileSchema>;
 const Settings = () => {
   const { user, setUser } = useUserStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tenantInfo, setTenantInfo] = useState<Tenant>();
 
   const form = useForm<UserProfileValues>({
     resolver: zodResolver(UserProfileSchema),
@@ -81,14 +84,28 @@ const Settings = () => {
     }
   };
 
+  // UseEffect to fetch tenant info
+  useEffect(() => {
+    const fetchTenantInfo = async () => {
+      const tenantInfo = await tenantsTenantMeRetrieve();
+      console.debug(tenantInfo);
+      setTenantInfo(tenantInfo);
+    };
+    fetchTenantInfo();
+  }, []);
+
   return (
     <SideBarLayout title="Settings">
       <div className="flex w-full justify-center">
         <div id="settings-container" className="flex flex-col gap-6">
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList
+              className={`grid w-full max-w-md grid-cols-${tenantInfo?.tenants_enabled ? "2" : "1"}`}
+            >
               <TabsTrigger value="user">User Settings</TabsTrigger>
-              <TabsTrigger value="team">Team Settings</TabsTrigger>
+              {tenantInfo?.tenants_enabled && (
+                <TabsTrigger value="team">Team Settings</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="user" className="mt-6 space-y-6">
               {/* Profile Picture Card */}
@@ -159,7 +176,7 @@ const Settings = () => {
               </Card>
             </TabsContent>
             <TabsContent value="team" className="mt-6">
-              <TenantSettings />
+              {tenantInfo?.tenants_enabled && <TenantSettings />}
             </TabsContent>
           </Tabs>
         </div>
