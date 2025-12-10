@@ -47,6 +47,7 @@ required_env_vars = [
     # Email
     "LOOPS_VERIFY_EMAIL_TRANSACTIONAL_ID",
     "LOOPS_LOGIN_CODE_TRANSACTIONAL_ID",
+    "LOOPS_INVITATION_TRANSACTIONAL_ID",
 ]
 
 # Add Google OAuth credentials to required vars if Google OAuth is enabled
@@ -514,6 +515,7 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # ---------------------------------------------------------------------------- #
 LOOPS_VERIFY_EMAIL_TRANSACTIONAL_ID = os.getenv("LOOPS_VERIFY_EMAIL_TRANSACTIONAL_ID")
 LOOPS_LOGIN_CODE_TRANSACTIONAL_ID = os.getenv("LOOPS_LOGIN_CODE_TRANSACTIONAL_ID")
+LOOPS_INVITATION_TRANSACTIONAL_ID = os.getenv("LOOPS_INVITATION_TRANSACTIONAL_ID")
 
 
 # ---------------------------------------------------------------------------- #
