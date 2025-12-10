@@ -194,8 +194,10 @@ export function TenantUsersTable() {
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="left" className="max-w-[200px]">
-                            To modify the owner, transfer ownership to another
-                            user first
+                            {tenant?.me?.role === RoleEnum.owner
+                              ? `To modify the owner, transfer ownership to another
+                            user first`
+                              : `You cannot edit the role of the owner`}
                           </TooltipContent>
                         </Tooltip>
                       ) : (
