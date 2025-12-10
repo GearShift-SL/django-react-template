@@ -27,7 +27,7 @@ import { authUserMePartialUpdate } from "@/api/django/auth/auth";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
 import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
-import type { Tenant } from "@/api/django/djangoAPI.schemas";
+import { RoleEnum, type Tenant } from "@/api/django/djangoAPI.schemas";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -100,12 +100,18 @@ const Settings = () => {
         <div id="settings-container" className="flex flex-col gap-6">
           <Tabs defaultValue="user" className="w-full">
             <TabsList
-              className={`grid w-full max-w-md grid-cols-${tenantInfo?.tenants_enabled ? "2" : "1"}`}
+              className={`grid w-full max-w-md grid-cols-${
+                tenantInfo?.tenants_enabled &&
+                tenantInfo?.me?.role !== RoleEnum.user
+                  ? "2"
+                  : "1"
+              }`}
             >
               <TabsTrigger value="user">User Settings</TabsTrigger>
-              {tenantInfo?.tenants_enabled && (
-                <TabsTrigger value="team">Team Settings</TabsTrigger>
-              )}
+              {tenantInfo?.tenants_enabled &&
+                tenantInfo?.me?.role !== RoleEnum.user && (
+                  <TabsTrigger value="team">Team Settings</TabsTrigger>
+                )}
             </TabsList>
             <TabsContent value="user" className="mt-6 space-y-6">
               {/* Profile Picture Card */}
@@ -176,7 +182,8 @@ const Settings = () => {
               </Card>
             </TabsContent>
             <TabsContent value="team" className="mt-6">
-              {tenantInfo?.tenants_enabled && <TenantSettings />}
+              {tenantInfo?.tenants_enabled &&
+                tenantInfo?.me?.role !== RoleEnum.user && <TenantSettings />}
             </TabsContent>
           </Tabs>
         </div>
