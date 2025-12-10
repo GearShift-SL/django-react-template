@@ -921,6 +921,10 @@ components:
         tenants_enabled:
           type: boolean
           readOnly: true
+        me:
+          allOf:
+          - $ref: '#/components/schemas/TenantUserSimple'
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -931,6 +935,7 @@ components:
           readOnly: true
       required:
       - created_at
+      - me
       - name
       - pk
       - slug

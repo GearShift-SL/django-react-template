@@ -158,6 +158,7 @@ export interface Tenant {
   website?: string;
   readonly tenant_users: readonly TenantUserList[];
   readonly tenants_enabled: boolean;
+  readonly me: TenantUserSimple;
   readonly created_at: string;
   readonly updated_at: string;
 }
