@@ -1,6 +1,6 @@
 # django
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 # Django Rest Framework
 from rest_framework import mixins, status, viewsets
@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 
 # Local App
-from .models import Invitation, Tenant, TenantLogo, TenantUser
+from .models import Invitation, TenantLogo, TenantUser
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
     InvitationSerializer,
@@ -23,6 +23,7 @@ from .serializers import (
 )
 
 
+@extend_schema_view(me=extend_schema(tags=["Tenant Info"]))
 class TenantInfoViewset(viewsets.GenericViewSet):
     serializer_class = TenantSerializer
 
@@ -48,6 +49,11 @@ class TenantInfoViewset(viewsets.GenericViewSet):
         return Response(serializer.data)
 
 
+@extend_schema_view(
+    get=extend_schema(tags=["Tenant Logo"]),
+    post=extend_schema(tags=["Tenant Logo"]),
+    delete=extend_schema(tags=["Tenant Logo"]),
+)
 class TenantLogoView(GenericAPIView):
     parser_classes = [MultiPartParser]
     serializer_class = TenantLogoSerializer
@@ -95,6 +101,14 @@ class TenantLogoView(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Tenant Users"]),
+    retrieve=extend_schema(tags=["Tenant Users"]),
+    update=extend_schema(tags=["Tenant Users"]),
+    partial_update=extend_schema(tags=["Tenant Users"]),
+    destroy=extend_schema(tags=["Tenant Users"]),
+    me=extend_schema(tags=["Tenant Users"]),
+)
 class TenantUserViewSet(
     viewsets.GenericViewSet,
     mixins.ListModelMixin,
@@ -172,6 +186,10 @@ class TenantUserViewSet(
         return Response(retrieve_serializer.data)
 
 
+@extend_schema_view(
+    create=extend_schema(tags=["Tenant Invitations"]),
+    list=extend_schema(tags=["Tenant Invitations"]),
+)
 class InvitationViewSet(
     mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
 ):
