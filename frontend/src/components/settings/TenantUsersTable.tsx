@@ -91,14 +91,17 @@ export function TenantUsersTable() {
     setIsUpdating(true);
     try {
       await tenantsTenantUsersUpdate(editingUser.pk, {
-        role: selectedRole as typeof RoleEnum[keyof typeof RoleEnum]
+        role: selectedRole as (typeof RoleEnum)[keyof typeof RoleEnum]
       });
 
       // Update local state
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.pk === editingUser.pk
-            ? { ...user, role: selectedRole as typeof RoleEnum[keyof typeof RoleEnum] }
+            ? {
+                ...user,
+                role: selectedRole as (typeof RoleEnum)[keyof typeof RoleEnum]
+              }
             : user
         )
       );
@@ -140,7 +143,9 @@ export function TenantUsersTable() {
               ))}
             </div>
           ) : users.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No team members found.</p>
+            <p className="text-sm text-muted-foreground">
+              No team members found.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -159,7 +164,9 @@ export function TenantUsersTable() {
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Badge variant={roleBadgeVariants[user.role] || "outline"}>
+                      <Badge
+                        variant={roleBadgeVariants[user.role] || "outline"}
+                      >
                         {roleLabels[user.role] || user.role}
                       </Badge>
                     </TableCell>
@@ -183,7 +190,10 @@ export function TenantUsersTable() {
       </Card>
 
       {/* Edit Role Dialog */}
-      <Dialog open={!!editingUser} onOpenChange={(open) => !open && handleCloseDialog()}>
+      <Dialog
+        open={!!editingUser}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Role</DialogTitle>
@@ -220,4 +230,3 @@ export function TenantUsersTable() {
     </>
   );
 }
-
