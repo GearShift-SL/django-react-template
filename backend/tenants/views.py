@@ -135,6 +135,48 @@ class TenantUserViewSet(
             permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
         return [permission() for permission in permission_classes]
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        current_user_tenant = request.user.tenant_user
+        new_role = request.data.get("role")
+
+        # Prevent changing the owner's role (only owner can transfer ownership)
+        if instance.role == "owner" and current_user_tenant.pk != instance.pk:
+            return Response(
+                {"detail": _("Only the owner can transfer ownership.")},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Only owners can set another user as owner
+        if new_role == "owner":
+            if current_user_tenant.role != "owner":
+                return Response(
+                    {"detail": _("Only the owner can set another user as owner.")},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Transfer ownership: set the new user as owner and current owner as admin
+            instance.role = "owner"
+            instance.save()
+            current_user_tenant.role = "admin"
+            current_user_tenant.save()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+
+        # Prevent owner from changing their own role without transferring ownership
+        if instance.role == "owner" and current_user_tenant.pk == instance.pk:
+            return Response(
+                {
+                    "detail": _(
+                        "Owner cannot change their role. Transfer ownership to another user first."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().update(request, *args, **kwargs)
+
 
 @extend_schema_view(
     create=extend_schema(tags=["Tenant Invitations"]),
