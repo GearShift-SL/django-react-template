@@ -18,6 +18,7 @@ from .serializers import (
     TenantLogoSerializer,
     TenantSerializer,
     TenantUserListSerializer,
+    TenantUserUpdateSerializer,
 )
 
 
@@ -99,23 +100,28 @@ class TenantLogoView(GenericAPIView):
 
 @extend_schema_view(
     list=extend_schema(tags=["Tenant Users"]),
+    update=extend_schema(tags=["Tenant Users"]),
     destroy=extend_schema(tags=["Tenant Users"]),
 )
 class TenantUserViewSet(
     viewsets.GenericViewSet,
     mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
 ):
     """
-    List and Destroy viewset for the TenantUser model.
+    List, Update and Destroy viewset for the TenantUser model.
     """
 
     queryset = TenantUser.objects.none()  # Empty queryset just for type information
+    http_method_names = ["get", "put", "delete", "head", "options"]
 
     def get_queryset(self):
         return self.request.user.tenant_user.tenant.tenant_users.all()
 
     def get_serializer_class(self):
+        if self.action == "update":
+            return TenantUserUpdateSerializer
         return TenantUserListSerializer
 
     def get_permissions(self):
