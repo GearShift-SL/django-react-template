@@ -1,4 +1,6 @@
 # django
+from datetime import timedelta
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
@@ -12,6 +14,7 @@ from rest_framework.generics import GenericAPIView
 
 # Local App
 from .models import Invitation, TenantLogo, TenantUser
+from .tasks import send_invitation_email_task
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
     InvitationSerializer,
@@ -135,6 +138,7 @@ class TenantUserViewSet(
 @extend_schema_view(
     create=extend_schema(tags=["Tenant Invitations"]),
     list=extend_schema(tags=["Tenant Invitations"]),
+    resend=extend_schema(tags=["Tenant Invitations"]),
 )
 class InvitationViewSet(
     mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
@@ -153,3 +157,32 @@ class InvitationViewSet(
 
         # Save the tenant and invited_by fields
         serializer.save(tenant=self.request.user.tenant, invited_by=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def resend(self, request, pk=None):
+        """
+        Resend an invitation email.
+        Returns 403 if the last invitation was sent less than 24 hours ago.
+        """
+        invitation = self.get_object()
+
+        # Check if the last invitation was sent less than 24 hours ago
+        if invitation.last_sent_at:
+            time_since_last_sent = timezone.now() - invitation.last_sent_at
+            if time_since_last_sent < timedelta(hours=24):
+                return Response(
+                    {
+                        "detail": _(
+                            "Invitation was already sent within the last 24 hours."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        # Trigger the celery task to send the invitation email
+        send_invitation_email_task.delay(invitation.pk)
+
+        return Response(
+            {"detail": _("Invitation email has been queued for resending.")},
+            status=status.HTTP_200_OK,
+        )
