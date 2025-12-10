@@ -11,24 +11,18 @@ from .models import Invitation, Tenant, TenantLogo, TenantUser
 #                                  TENANT USER                                 #
 # ---------------------------------------------------------------------------- #
 class TenantUserListSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email")
+    first_name = serializers.CharField(source="user.first_name")
+    last_name = serializers.CharField(source="user.last_name")
 
     class Meta:
         model = TenantUser
         fields = [
             "pk",
             "role",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = fields
-
-
-class TenantUserDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TenantUser
-        fields = [
-            "pk",
-            "role",
+            "email",
+            "first_name",
+            "last_name",
             "created_at",
             "updated_at",
         ]
