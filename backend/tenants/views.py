@@ -23,6 +23,7 @@ from .serializers import (
     TenantUserListSerializer,
     TenantUserUpdateSerializer,
 )
+from .mixins import TenantAwareMixin
 
 
 @extend_schema_view(me=extend_schema(tags=["Tenant Info"]))
@@ -141,25 +142,25 @@ class TenantUserViewSet(
     resend=extend_schema(tags=["Tenant Invitations"]),
 )
 class InvitationViewSet(
-    mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+    TenantAwareMixin,
 ):
     """
     A viewset that provides the `create` and `list` actions.
     """
 
+    queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
-    def get_queryset(self):
-        return Invitation.objects.filter(
-            invited_by__tenant=self.request.user.tenant_user.tenant
+    def perform_create(self, serializer):
+        serializer.save(
+            tenant=self.request.user.tenant_user.tenant, invited_by=self.request.user
         )
 
-    def perform_create(self, serializer):
-
-        # Save the tenant and invited_by fields
-        serializer.save(tenant=self.request.user.tenant, invited_by=self.request.user)
-
+    @extend_schema(request=None)
     @action(detail=True, methods=["post"])
     def resend(self, request, pk=None):
         """
