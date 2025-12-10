@@ -191,7 +191,11 @@ class TenantUserViewSet(
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return super().destroy(request, *args, **kwargs)
+        # Delete the underlying user object (this will cascade delete the TenantUser)
+        user = instance.user
+        user.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(
