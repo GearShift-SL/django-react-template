@@ -34,21 +34,6 @@ export interface InvitationRequest {
   email: string;
 }
 
-export interface PatchedTenantRequest {
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  name?: string;
-  logo?: Blob;
-  /** @maxLength 200 */
-  website?: string;
-}
-
-export interface PatchedTenantUserUpdateRequest {
-  role?: RoleEnum;
-}
-
 export interface PatchedUserProfileRequest {
   /** @nullable */
   avatar?: Blob | null;
@@ -171,6 +156,7 @@ export interface Tenant {
   /** @maxLength 200 */
   website?: string;
   readonly tenant_users: readonly TenantUserList[];
+  readonly tenants_enabled: boolean;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -195,13 +181,6 @@ export interface TenantRequest {
   website?: string;
 }
 
-export interface TenantUserDetail {
-  readonly pk: number;
-  readonly role: RoleEnum;
-  readonly created_at: string;
-  readonly updated_at: string;
-}
-
 export interface TenantUserList {
   readonly pk: number;
   readonly role: RoleEnum;
@@ -211,6 +190,10 @@ export interface TenantUserList {
 
 export interface TenantUserSimple {
   readonly pk: number;
+  role?: RoleEnum;
+}
+
+export interface TenantUserUpdate {
   role?: RoleEnum;
 }
 
