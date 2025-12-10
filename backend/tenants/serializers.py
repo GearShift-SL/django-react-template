@@ -56,6 +56,7 @@ class TenantSerializer(serializers.ModelSerializer):
     logo = serializers.ImageField(required=False, source="logo.image")
     tenant_users = serializers.SerializerMethodField()
     tenants_enabled = serializers.SerializerMethodField()
+    me = serializers.SerializerMethodField()
 
     class Meta:
         model = Tenant
@@ -67,6 +68,7 @@ class TenantSerializer(serializers.ModelSerializer):
             "website",
             "tenant_users",
             "tenants_enabled",
+            "me",
             "created_at",
             "updated_at",
         ]
@@ -87,6 +89,15 @@ class TenantSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.BooleanField())
     def get_tenants_enabled(self, obj):
         return settings.ENABLE_TENANTS
+
+    @extend_schema_field(TenantUserSimpleSerializer())
+    def get_me(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            tenant_user = obj.tenant_users.filter(user=request.user).first()
+            if tenant_user:
+                return TenantUserSimpleSerializer(tenant_user).data
+        return None
 
 
 class TenantLogoSerializer(serializers.ModelSerializer):
