@@ -17,9 +17,7 @@ from .serializers import (
     InvitationSerializer,
     TenantLogoSerializer,
     TenantSerializer,
-    TenantUserDetailSerializer,
     TenantUserListSerializer,
-    TenantUserUpdateSerializer,
 )
 
 
@@ -103,21 +101,15 @@ class TenantLogoView(GenericAPIView):
 
 @extend_schema_view(
     list=extend_schema(tags=["Tenant Users"]),
-    retrieve=extend_schema(tags=["Tenant Users"]),
-    update=extend_schema(tags=["Tenant Users"]),
-    partial_update=extend_schema(tags=["Tenant Users"]),
     destroy=extend_schema(tags=["Tenant Users"]),
-    me=extend_schema(tags=["Tenant Users"]),
 )
 class TenantUserViewSet(
     viewsets.GenericViewSet,
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
 ):
     """
-    List, Retrieve and Update viewset for the TenantUser model.
+    List and Destroy viewset for the TenantUser model.
     """
 
     queryset = TenantUser.objects.none()  # Empty queryset just for type information
@@ -126,64 +118,14 @@ class TenantUserViewSet(
         return self.request.user.tenant_user.tenant.tenant_users.all()
 
     def get_serializer_class(self):
-        if self.action == "list":
-            return TenantUserListSerializer
-        elif self.action == "retrieve" or (
-            self.action == "me" and self.request.method == "GET"
-        ):
-            return TenantUserDetailSerializer
-        elif self.action in ["update", "partial_update"] or (
-            self.action == "me" and self.request.method in ["PUT", "PATCH"]
-        ):
-            return TenantUserUpdateSerializer
-        return TenantUserDetailSerializer  # Default case
+        return TenantUserListSerializer
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"] or (self.action == "me"):
+        if self.action == "list":
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
         return [permission() for permission in permission_classes]
-
-    @extend_schema(responses={200: TenantUserDetailSerializer})
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
-        instance = self.get_object()
-
-        # Use update serializer for validation
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-
-        # Use retrieve serializer for response
-        retrieve_serializer = TenantUserDetailSerializer(instance)
-        return Response(retrieve_serializer.data)
-
-    @extend_schema(responses={200: TenantUserDetailSerializer})
-    def partial_update(self, request, *args, **kwargs):
-        kwargs["partial"] = True
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(
-        methods=["PUT", "PATCH"], responses={200: TenantUserDetailSerializer}
-    )
-    @action(detail=False, methods=["get", "put", "patch"])
-    def me(self, request):
-        tenant_user = request.user.tenant_user
-        if request.method == "GET":
-            serializer = self.get_serializer(tenant_user)
-            return Response(serializer.data)
-
-        # Use update serializer for validation and saving
-        update_serializer = self.get_serializer(
-            tenant_user, data=request.data, partial=request.method == "PATCH"
-        )
-        update_serializer.is_valid(raise_exception=True)
-        tenant_user = update_serializer.save()
-
-        # Use retrieve serializer for the response
-        retrieve_serializer = TenantUserDetailSerializer(tenant_user)
-        return Response(retrieve_serializer.data)
 
 
 @extend_schema_view(
