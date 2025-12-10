@@ -28,6 +28,7 @@ import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
 import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
 import { RoleEnum, type Tenant } from "@/api/django/djangoAPI.schemas";
+import { useTenantStore } from "@/stores/TenantStore";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -40,7 +41,8 @@ type UserProfileValues = z.infer<typeof UserProfileSchema>;
 const Settings = () => {
   const { user, setUser } = useUserStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tenantInfo, setTenantInfo] = useState<Tenant>();
+
+  const { tenant } = useTenantStore();
 
   const form = useForm<UserProfileValues>({
     resolver: zodResolver(UserProfileSchema),
@@ -84,16 +86,6 @@ const Settings = () => {
     }
   };
 
-  // UseEffect to fetch tenant info
-  useEffect(() => {
-    const fetchTenantInfo = async () => {
-      const tenantInfo = await tenantsTenantMeRetrieve();
-      console.debug(tenantInfo);
-      setTenantInfo(tenantInfo);
-    };
-    fetchTenantInfo();
-  }, []);
-
   return (
     <SideBarLayout title="Settings">
       <div className="flex w-full justify-center">
@@ -101,15 +93,14 @@ const Settings = () => {
           <Tabs defaultValue="user" className="w-full">
             <TabsList
               className={`grid w-full max-w-md grid-cols-${
-                tenantInfo?.tenants_enabled &&
-                tenantInfo?.me?.role !== RoleEnum.user
+                tenant?.tenants_enabled && tenant?.me?.role !== RoleEnum.user
                   ? "2"
                   : "1"
               }`}
             >
               <TabsTrigger value="user">User Settings</TabsTrigger>
-              {tenantInfo?.tenants_enabled &&
-                tenantInfo?.me?.role !== RoleEnum.user && (
+              {tenant?.tenants_enabled &&
+                tenant?.me?.role !== RoleEnum.user && (
                   <TabsTrigger value="team">Team Settings</TabsTrigger>
                 )}
             </TabsList>
@@ -182,8 +173,8 @@ const Settings = () => {
               </Card>
             </TabsContent>
             <TabsContent value="team" className="mt-6">
-              {tenantInfo?.tenants_enabled &&
-                tenantInfo?.me?.role !== RoleEnum.user && <TenantSettings />}
+              {tenant?.tenants_enabled &&
+                tenant?.me?.role !== RoleEnum.user && <TenantSettings />}
             </TabsContent>
           </Tabs>
         </div>

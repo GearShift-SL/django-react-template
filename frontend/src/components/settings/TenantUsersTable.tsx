@@ -39,6 +39,7 @@ import {
 } from "@/api/django/tenant-users/tenant-users";
 import type { TenantUserList } from "@/api/django/djangoAPI.schemas";
 import { RoleEnum } from "@/api/django/djangoAPI.schemas";
+import { useTenantStore } from "@/stores/TenantStore";
 
 const roleLabels: Record<string, string> = {
   owner: "Owner",
@@ -53,6 +54,7 @@ const roleBadgeVariants: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function TenantUsersTable() {
+  const { tenant } = useTenantStore();
   const [users, setUsers] = useState<TenantUserList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<TenantUserList | null>(null);
@@ -207,7 +209,9 @@ export function TenantUsersTable() {
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={RoleEnum.owner}>Owner</SelectItem>
+                {tenant?.me?.role === RoleEnum.owner && (
+                  <SelectItem value={RoleEnum.owner}>Owner</SelectItem>
+                )}
                 <SelectItem value={RoleEnum.admin}>Admin</SelectItem>
                 <SelectItem value={RoleEnum.user}>User</SelectItem>
               </SelectContent>
