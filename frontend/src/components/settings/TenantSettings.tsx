@@ -26,6 +26,7 @@ import {
   tenantsTenantMeUpdate
 } from "@/api/django/tenant-info/tenant-info";
 import { TenantLogoUpload } from "./TenantLogoUpload";
+import { TenantUsersTable } from "./TenantUsersTable";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const TenantNameSchema = z.object({
@@ -150,6 +151,8 @@ export function TenantSettings() {
           )}
         </CardContent>
       </Card>
+
+      <TenantUsersTable />
     </div>
   );
 }
