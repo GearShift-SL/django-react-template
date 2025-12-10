@@ -151,7 +151,9 @@ class InvitationViewSet(
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
     def get_queryset(self):
-        return Invitation.objects.for_current_tenant()
+        return Invitation.objects.filter(
+            invited_by__tenant=self.request.user.tenant_user.tenant
+        )
 
     def perform_create(self, serializer):
 
