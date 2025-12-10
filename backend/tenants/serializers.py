@@ -113,16 +113,16 @@ class InvitationSerializer(serializers.ModelSerializer):
         fields = [
             "email",
             "invited_by",
-            "code",
-            "is_accepted",
+            "last_sent_at",
+            "accepted_at",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "tenant",
             "invited_by",
-            "code",
-            "is_accepted",
+            "last_sent_at",
+            "accepted_at",
             "created_at",
             "updated_at",
         ]
