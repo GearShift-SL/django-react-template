@@ -10,14 +10,17 @@ import { useLocation, Navigate, Outlet } from "react-router-dom";
 
 // Zustand
 import { useUserStore } from "@/stores/UserStore";
+import { useTenantStore } from "@/stores/TenantStore";
 
 // API
 import { authUserMeRetrieve } from "@/api/django/auth/auth";
+import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
 
 const ProtectedLayout = () => {
   /* ---------------------------------- HOOKS --------------------------------- */
   const location = useLocation();
   const { setUser } = useUserStore();
+  const { setTenant } = useTenantStore();
 
   // Local useStates
   const [isLoading, setIsLoading] = useState(true);
@@ -37,11 +40,23 @@ const ProtectedLayout = () => {
           }
         });
 
-        // Set the user and billing details
+        // Set the user details
         console.debug("User logged in:", userDetails);
 
-        // Set the user and billing details
+        const tenantDetails = await tenantsTenantMeRetrieve({
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        // Set the tenant details
+        console.debug("Tenant details:", tenantDetails);
+
+        // Set the user details
         setUser(userDetails);
+
+        // Set the tenant details
+        setTenant(tenantDetails);
 
         // Set the authenticated state
         setIsAuthenticated(true);
