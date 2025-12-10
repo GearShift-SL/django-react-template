@@ -527,3 +527,11 @@ HEALTH_CHECK = {
         "redis-probe": ["RedisHealthCheck"],
     },
 }
+
+
+# ---------------------------------------------------------------------------- #
+#                                     TENANTS                                  #
+# ---------------------------------------------------------------------------- #
+
+# Custom user model
+ENABLE_TENANTS = os.getenv("ENABLE_TENANTS", "True") == "True"
