@@ -1,5 +1,4 @@
 import random
-import string
 from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
@@ -94,26 +93,17 @@ class Invitation(models.Model):
         TenantUser, on_delete=models.CASCADE, related_name="invitations_sent"
     )
 
-    # A random generated code
-    code = models.CharField(max_length=32, blank=True, null=True)
+    # Last sent at date and time
+    last_sent_at = models.DateTimeField(blank=True, null=True)
 
-    # If the invitation is accepted/disabled
-    is_accepted = models.BooleanField(default=False)
+    # If the invitation is accepted, the date and time of the acceptance
+    accepted_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.email
-
-    # Create a random code and save it in the database
-    def save(self, *args, **kwargs):
-        if not self.code:
-            self.code = self.generate_code()
-        super().save(*args, **kwargs)
-
-    def generate_code(self):
-        return "".join(random.choices(string.ascii_letters + string.digits, k=32))
 
     def clean(self):
         # Check if the email is already in use
