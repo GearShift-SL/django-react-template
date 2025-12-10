@@ -32,16 +32,14 @@ class TenantInfoViewset(viewsets.GenericViewSet):
             permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
         return [permission() for permission in permission_classes]
 
-    @action(detail=False, methods=["get", "put", "patch"])
+    @action(detail=False, methods=["get", "put"])
     def me(self, request):
         tenant = request.user.tenant_user.tenant
         if request.method == "GET":
             serializer = self.get_serializer(tenant)
             return Response(serializer.data)
 
-        serializer = self.get_serializer(
-            tenant, data=request.data, partial=request.method == "PATCH"
-        )
+        serializer = self.get_serializer(tenant, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
