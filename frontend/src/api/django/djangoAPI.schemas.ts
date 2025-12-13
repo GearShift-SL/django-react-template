@@ -1,9 +1,15 @@
 // @ts-nocheck
+/**
+ * Error serializer for code confirmation failures.
+ */
 export interface CodeConfirmError {
   code: string;
   detail: string;
 }
 
+/**
+ * Request serializer for confirming login code.
+ */
 export interface CodeConfirmRequestRequest {
   /** @minLength 1 */
   code: string;
@@ -11,6 +17,9 @@ export interface CodeConfirmRequestRequest {
 
 export type CodeConfirmResponseUser = { [key: string]: unknown };
 
+/**
+ * Response serializer for successful code confirmation.
+ */
 export interface CodeConfirmResponse {
   user: CodeConfirmResponseUser;
 }
@@ -35,11 +44,17 @@ export interface InvitationRequest {
   email: string;
 }
 
+/**
+ * Serializer for user profile data (avatar, etc.).
+ */
 export interface PatchedUserProfileRequest {
   /** @nullable */
   avatar?: Blob | null;
 }
 
+/**
+ * Serializer for basic user information.
+ */
 export interface PatchedUserRequest {
   /** @maxLength 30 */
   first_name?: string;
@@ -59,11 +74,17 @@ export const ProcessEnum = {
   connect: "connect",
 } as const;
 
+/**
+ * Serializer for social provider information.
+ */
 export interface Provider {
   provider: string;
   client_id?: string;
 }
 
+/**
+ * Error serializer for provider authentication failures.
+ */
 export interface ProviderTokenError {
   code: string;
   detail: string;
@@ -71,6 +92,9 @@ export interface ProviderTokenError {
 
 export type ProviderTokenRequestRequestToken = { [key: string]: unknown };
 
+/**
+ * Request serializer for social provider authentication.
+ */
 export interface ProviderTokenRequestRequest {
   /** @minLength 1 */
   provider: string;
@@ -80,10 +104,16 @@ export interface ProviderTokenRequestRequest {
 
 export type ProviderTokenResponseUser = { [key: string]: unknown };
 
+/**
+ * Response serializer for successful provider authentication.
+ */
 export interface ProviderTokenResponse {
   user: ProviderTokenResponseUser;
 }
 
+/**
+ * Response serializer for listing available social providers.
+ */
 export interface ProvidersListResponse {
   providers: Provider[];
 }
@@ -102,6 +132,9 @@ export const RoleEnum = {
   user: "user",
 } as const;
 
+/**
+ * Error serializer for session status failures.
+ */
 export interface SessionStatusError {
   code: string;
   detail: string;
@@ -109,6 +142,9 @@ export interface SessionStatusError {
 
 export type SessionStatusResponseUser = { [key: string]: unknown };
 
+/**
+ * Response serializer for session status information.
+ */
 export interface SessionStatusResponse {
   user?: SessionStatusResponseUser;
   is_authenticated?: boolean;
@@ -130,6 +166,9 @@ export interface StartAuthError {
   detail: string;
 }
 
+/**
+ * Request serializer for starting authentication flow (login or signup).
+ */
 export interface StartAuthRequestRequest {
   /** @minLength 1 */
   email?: string;
@@ -206,6 +245,9 @@ export interface TenantUserUpdateRequest {
   role?: RoleEnum;
 }
 
+/**
+ * Serializer for basic user information.
+ */
 export interface User {
   readonly pk: number;
   readonly email: string;
@@ -216,6 +258,9 @@ export interface User {
   readonly profile: UserProfile;
 }
 
+/**
+ * Serializer for current authenticated user with tenant information.
+ */
 export interface UserMe {
   readonly pk: number;
   readonly email: string;
@@ -228,19 +273,18 @@ export interface UserMe {
   readonly profile: UserProfile;
 }
 
+/**
+ * Serializer for user profile data (avatar, etc.).
+ */
 export interface UserProfile {
   /** @nullable */
   avatar?: string | null;
 }
 
+/**
+ * Serializer for user profile data (avatar, etc.).
+ */
 export interface UserProfileRequest {
   /** @nullable */
   avatar?: Blob | null;
-}
-
-export interface UserRequest {
-  /** @maxLength 30 */
-  first_name?: string;
-  /** @maxLength 30 */
-  last_name?: string;
 }

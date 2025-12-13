@@ -21,7 +21,7 @@ paths:
         description: The type of client accessing the API.
         required: true
       tags:
-      - auth
+      - Authentication Email
       requestBody:
         content:
           application/json:
@@ -97,7 +97,7 @@ paths:
         description: The type of client accessing the API.
         required: true
       tags:
-      - auth
+      - Authentication Provider
       requestBody:
         content:
           application/json:
@@ -181,7 +181,7 @@ paths:
         description: The type of client accessing the API.
         required: true
       tags:
-      - auth
+      - Authentication Session
       security:
       - cookieAuth: []
       - {}
@@ -224,7 +224,7 @@ paths:
         description: The type of client accessing the API.
         required: true
       tags:
-      - auth
+      - Authentication Session
       security:
       - cookieAuth: []
       - {}
@@ -259,7 +259,7 @@ paths:
         description: The type of client accessing the API.
         required: true
       tags:
-      - auth
+      - Authentication Email
       requestBody:
         content:
           application/json:
@@ -327,26 +327,10 @@ paths:
   /auth/profile/me/:
     get:
       operationId: auth_profile_me_retrieve
+      description: ViewSet for managing the current user's profile avatar and other
+        profile data.
       tags:
-      - auth
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfile'
-          description: ''
-    put:
-      operationId: auth_profile_me_update
-      tags:
-      - auth
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserProfileRequest'
+      - Authentication User Profile
       security:
       - cookieAuth: []
       responses:
@@ -358,8 +342,10 @@ paths:
           description: ''
     patch:
       operationId: auth_profile_me_partial_update
+      description: ViewSet for managing the current user's profile avatar and other
+        profile data.
       tags:
-      - auth
+      - Authentication User Profile
       requestBody:
         content:
           multipart/form-data:
@@ -380,7 +366,7 @@ paths:
       description: Returns enabled Allauth providers and their client IDs.
       summary: List social providers
       tags:
-      - auth
+      - Authentication Provider
       security:
       - cookieAuth: []
       - {}
@@ -394,8 +380,9 @@ paths:
   /auth/user/me/:
     get:
       operationId: auth_user_me_retrieve
+      description: ViewSet for managing the current user's profile.
       tags:
-      - auth
+      - Authentication User
       security:
       - cookieAuth: []
       responses:
@@ -405,34 +392,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserMe'
           description: ''
-    put:
-      operationId: auth_user_me_update
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
     patch:
       operationId: auth_user_me_partial_update
+      description: ViewSet for managing the current user's profile.
       tags:
-      - auth
+      - Authentication User
       requestBody:
         content:
           application/json:
@@ -672,6 +636,7 @@ components:
   schemas:
     CodeConfirmError:
       type: object
+      description: Error serializer for code confirmation failures.
       properties:
         code:
           type: string
@@ -682,6 +647,7 @@ components:
       - detail
     CodeConfirmRequestRequest:
       type: object
+      description: Request serializer for confirming login code.
       properties:
         code:
           type: string
@@ -690,6 +656,7 @@ components:
       - code
     CodeConfirmResponse:
       type: object
+      description: Response serializer for successful code confirmation.
       properties:
         user:
           type: object
@@ -743,6 +710,7 @@ components:
       - email
     PatchedUserProfileRequest:
       type: object
+      description: Serializer for user profile data (avatar, etc.).
       properties:
         avatar:
           type: string
@@ -750,6 +718,7 @@ components:
           nullable: true
     PatchedUserRequest:
       type: object
+      description: Serializer for basic user information.
       properties:
         first_name:
           type: string
@@ -767,6 +736,7 @@ components:
         * `connect` - connect
     Provider:
       type: object
+      description: Serializer for social provider information.
       properties:
         provider:
           type: string
@@ -776,6 +746,7 @@ components:
       - provider
     ProviderTokenError:
       type: object
+      description: Error serializer for provider authentication failures.
       properties:
         code:
           type: string
@@ -786,6 +757,7 @@ components:
       - detail
     ProviderTokenRequestRequest:
       type: object
+      description: Request serializer for social provider authentication.
       properties:
         provider:
           type: string
@@ -801,6 +773,7 @@ components:
       - token
     ProviderTokenResponse:
       type: object
+      description: Response serializer for successful provider authentication.
       properties:
         user:
           type: object
@@ -809,6 +782,7 @@ components:
       - user
     ProvidersListResponse:
       type: object
+      description: Response serializer for listing available social providers.
       properties:
         providers:
           type: array
@@ -828,6 +802,7 @@ components:
         * `user` - User
     SessionStatusError:
       type: object
+      description: Error serializer for session status failures.
       properties:
         code:
           type: string
@@ -838,6 +813,7 @@ components:
       - detail
     SessionStatusResponse:
       type: object
+      description: Response serializer for session status information.
       properties:
         user:
           type: object
@@ -873,6 +849,7 @@ components:
       - detail
     StartAuthRequestRequest:
       type: object
+      description: Request serializer for starting authentication flow (login or signup).
       properties:
         email:
           type: string
@@ -1036,6 +1013,7 @@ components:
           $ref: '#/components/schemas/RoleEnum'
     User:
       type: object
+      description: Serializer for basic user information.
       properties:
         pk:
           type: integer
@@ -1061,6 +1039,7 @@ components:
       - profile
     UserMe:
       type: object
+      description: Serializer for current authenticated user with tenant information.
       properties:
         pk:
           type: integer
@@ -1096,6 +1075,7 @@ components:
       - tenant_user
     UserProfile:
       type: object
+      description: Serializer for user profile data (avatar, etc.).
       properties:
         avatar:
           type: string
@@ -1103,20 +1083,12 @@ components:
           nullable: true
     UserProfileRequest:
       type: object
+      description: Serializer for user profile data (avatar, etc.).
       properties:
         avatar:
           type: string
           format: binary
           nullable: true
-    UserRequest:
-      type: object
-      properties:
-        first_name:
-          type: string
-          maxLength: 30
-        last_name:
-          type: string
-          maxLength: 30
   securitySchemes:
     cookieAuth:
       type: apiKey
