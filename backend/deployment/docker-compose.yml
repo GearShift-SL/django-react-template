@@ -76,3 +76,26 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+  
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # ---------------------------------------------------------------------------
+  # Serves as the main entry point for HTTP traffic:
+  #   - Proxies requests to Django application
+  #   - Serves static files directly (faster than Django)
+  #   - Serves media files directly
+  #   - Can handle SSL termination (configure in nginx.conf)
+  nginx:
+    image: nginx:1.28
+    restart: unless-stopped
+    ports:
+      # Main application entry point - access the app at http://localhost:8080
+      - "8080:80"
+    volumes:
+      # Nginx configuration file (read-only mount)
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # Media files volume - must match Django's MEDIA_ROOT
+      - ./media:/app/backend/media
+    depends_on:
+      # Wait for Django to be available before starting
+      - django
