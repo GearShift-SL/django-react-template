@@ -87,8 +87,8 @@ const Settings = () => {
 
   return (
     <SideBarLayout title="Settings">
-      <div className="flex w-full justify-center">
-        <div id="settings-container" className="flex flex-col gap-6">
+      <div className="flex w-full justify-center overflow-y-auto">
+        <div id="settings-container" className="flex flex-col gap-6 py-6">
           <Tabs defaultValue="user" className="w-full">
             <TabsList
               className={`grid w-full max-w-md grid-cols-${
