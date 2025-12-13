@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -10,12 +10,13 @@ import ProtectedLayout from "@/layouts/ProtectedLayout";
 
 // Components
 import { Toaster } from "sonner";
+import LoadingFallback from "@/components/LoadingFallback";
 
-// Pages
-import Home from "@/pages/Home";
-import Login from "@/pages/Login";
-import NotFound from "@/pages/NotFound";
-import Settings from "@/pages/Settings";
+// Pages - Lazy loaded for code splitting
+const Home = lazy(() => import("@/pages/Home"));
+const Login = lazy(() => import("@/pages/Login"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Settings = lazy(() => import("@/pages/Settings"));
 
 const router = createBrowserRouter([
   {
@@ -24,21 +25,37 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Home />
+          </Suspense>
+        )
       },
       {
         path: "/settings",
-        element: <Settings />
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Settings />
+          </Suspense>
+        )
       }
     ]
   },
   {
     path: "/login",
-    element: <Login />
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <Login />
+      </Suspense>
+    )
   },
   {
     path: "*",
-    element: <NotFound />
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <NotFound />
+      </Suspense>
+    )
   }
 ]);
 
