@@ -44,8 +44,14 @@ import {
   tenantsTenantUsersList,
   tenantsTenantUsersUpdate
 } from "@/api/django/tenant-users/tenant-users";
-import { tenantsInvitationsCreate } from "@/api/django/tenant-invitations/tenant-invitations";
-import type { TenantUserList } from "@/api/django/djangoAPI.schemas";
+import {
+  tenantsInvitationsCreate,
+  tenantsInvitationsList
+} from "@/api/django/tenant-invitations/tenant-invitations";
+import type {
+  TenantUserList,
+  Invitation
+} from "@/api/django/djangoAPI.schemas";
 import { RoleEnum } from "@/api/django/djangoAPI.schemas";
 import { useTenantStore } from "@/stores/TenantStore";
 
@@ -61,9 +67,15 @@ const roleBadgeVariants: Record<string, "default" | "secondary" | "outline"> = {
   user: "outline"
 };
 
+// Combined type for displaying both users and pending invitations
+type UserOrInvitation =
+  | { type: "user"; data: TenantUserList }
+  | { type: "invitation"; data: Invitation };
+
 export function TenantUsersTable() {
   const { tenant } = useTenantStore();
   const [users, setUsers] = useState<TenantUserList[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<TenantUserList | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -74,8 +86,13 @@ export function TenantUsersTable() {
 
   const fetchUsers = async () => {
     try {
-      const data = await tenantsTenantUsersList();
-      setUsers(data);
+      const [usersData, invitationsData] = await Promise.all([
+        tenantsTenantUsersList(),
+        tenantsInvitationsList()
+      ]);
+      setUsers(usersData);
+      // Only show pending invitations (not yet accepted)
+      setInvitations(invitationsData.filter((inv) => inv.accepted_at === null));
     } catch (error) {
       console.error("Failed to fetch tenant users:", error);
       toast.error("Failed to load team members.");
@@ -177,6 +194,15 @@ export function TenantUsersTable() {
     return fullName || user.email || "—";
   };
 
+  // Combine users and pending invitations for display
+  const combinedList: UserOrInvitation[] = [
+    ...users.map((user) => ({ type: "user" as const, data: user })),
+    ...invitations.map((invitation) => ({
+      type: "invitation" as const,
+      data: invitation
+    }))
+  ];
+
   return (
     <>
       <Card>
@@ -198,7 +224,7 @@ export function TenantUsersTable() {
                 </div>
               ))}
             </div>
-          ) : users.length === 0 ? (
+          ) : combinedList.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No team members found.
             </p>
@@ -213,56 +239,107 @@ export function TenantUsersTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.pk}>
-                    <TableCell className="font-medium">
-                      {getUserName(user)}
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={roleBadgeVariants[user.role] || "outline"}
-                      >
-                        {roleLabels[user.role] || user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.role === "owner" ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="inline-block">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled
-                                className="h-8 w-8 p-0"
+                {combinedList.map((item, index) => {
+                  if (item.type === "user") {
+                    const user = item.data;
+                    return (
+                      <TableRow key={`user-${user.pk}`}>
+                        <TableCell className="font-medium">
+                          {getUserName(user)}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={roleBadgeVariants[user.role] || "outline"}
+                          >
+                            {roleLabels[user.role] || user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {user.role === "owner" ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-block">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit role</span>
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="left"
+                                className="max-w-[200px]"
                               >
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit role</span>
-                              </Button>
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent side="left" className="max-w-[200px]">
-                            {tenant?.me?.role === RoleEnum.owner
-                              ? `To modify or delete this user, transfer ownership to another
-                            user first`
-                              : `You cannot edit the role of the owner`}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditRole(user)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit role</span>
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                {tenant?.me?.role === RoleEnum.owner
+                                  ? `To modify or delete this user, transfer ownership to another
+                                user first`
+                                  : `You cannot edit the role of the owner`}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditRole(user)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Edit role</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  } else {
+                    const invitation = item.data;
+                    return (
+                      <TableRow key={`invitation-${invitation.email}-${index}`}>
+                        <TableCell className="font-medium text-muted-foreground">
+                          —
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {invitation.email}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="text-muted-foreground"
+                          >
+                            Pending
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-block">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit role</span>
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="left"
+                              className="max-w-[200px]"
+                            >
+                              Cannot edit pending invitations
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                })}
               </TableBody>
             </Table>
           )}
