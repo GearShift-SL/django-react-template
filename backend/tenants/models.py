@@ -51,6 +51,12 @@ class TenantModel(models.Model):
             raise ValidationError("A tenant is required")
 
 
+class TenantUserRole(models.TextChoices):
+    OWNER = "owner", "Owner"
+    ADMIN = "admin", "Admin"
+    USER = "user", "User"
+
+
 class TenantUser(models.Model):
     """
     Model to store the relationship between a user and a tenant
@@ -63,12 +69,9 @@ class TenantUser(models.Model):
     tenant = models.ForeignKey(
         Tenant, on_delete=models.CASCADE, related_name="tenant_users"
     )
-    ROLE_OPTIONS = [
-        ("owner", "Owner"),
-        ("admin", "Admin"),
-        ("user", "User"),
-    ]
-    role = models.CharField(max_length=30, choices=ROLE_OPTIONS, default="user")
+    role = models.CharField(
+        max_length=30, choices=TenantUserRole.choices, default=TenantUserRole.USER
+    )
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
