@@ -2,7 +2,7 @@
 # - django service
 # - worker service
 # - beat service
-djangp-app: &django-app
+x-django-app: &django-app
   restart: unless-stopped
   image: mydockerregistry.com/my-app-backend:latest
   env_file:
