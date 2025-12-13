@@ -26,6 +26,8 @@ import { useUserStore } from "@/stores/UserStore";
 import { authUserMePartialUpdate } from "@/api/django/auth/auth";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
+import { RoleEnum } from "@/api/django/djangoAPI.schemas";
+import { useTenantStore } from "@/stores/TenantStore";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const UserProfileSchema = z.object({
@@ -38,6 +40,8 @@ type UserProfileValues = z.infer<typeof UserProfileSchema>;
 const Settings = () => {
   const { user, setUser } = useUserStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { tenant } = useTenantStore();
 
   const form = useForm<UserProfileValues>({
     resolver: zodResolver(UserProfileSchema),
@@ -83,12 +87,21 @@ const Settings = () => {
 
   return (
     <SideBarLayout title="Settings">
-      <div className="flex w-full justify-center">
-        <div id="settings-container" className="flex flex-col gap-6">
+      <div className="flex w-full justify-center overflow-y-auto">
+        <div id="settings-container" className="flex flex-col gap-6 py-6">
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList
+              className={`grid w-full max-w-md ${
+                tenant?.tenants_enabled && tenant?.me?.role !== RoleEnum.user
+                  ? "grid-cols-2"
+                  : "grid-cols-1"
+              }`}
+            >
               <TabsTrigger value="user">User Settings</TabsTrigger>
-              <TabsTrigger value="team">Team Settings</TabsTrigger>
+              {tenant?.tenants_enabled &&
+                tenant?.me?.role !== RoleEnum.user && (
+                  <TabsTrigger value="team">Team Settings</TabsTrigger>
+                )}
             </TabsList>
             <TabsContent value="user" className="mt-6 space-y-6">
               {/* Profile Picture Card */}
@@ -159,7 +172,8 @@ const Settings = () => {
               </Card>
             </TabsContent>
             <TabsContent value="team" className="mt-6">
-              <TenantSettings />
+              {tenant?.tenants_enabled &&
+                tenant?.me?.role !== RoleEnum.user && <TenantSettings />}
             </TabsContent>
           </Tabs>
         </div>

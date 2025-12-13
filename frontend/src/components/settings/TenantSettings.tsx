@@ -23,9 +23,10 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import {
   tenantsTenantMeRetrieve,
-  tenantsTenantMePartialUpdate
-} from "@/api/django/tenants/tenants";
+  tenantsTenantMeUpdate
+} from "@/api/django/tenant-info/tenant-info";
 import { TenantLogoUpload } from "./TenantLogoUpload";
+import { TenantUsersTable } from "./TenantUsersTable";
 
 /* ----------------------------------- Zod ---------------------------------- */
 const TenantNameSchema = z.object({
@@ -70,7 +71,7 @@ export function TenantSettings() {
   const onSubmit = async (values: TenantNameValues) => {
     setIsSubmitting(true);
     try {
-      const updatedTenant = await tenantsTenantMePartialUpdate({
+      const updatedTenant = await tenantsTenantMeUpdate({
         name: values.name
       });
 
@@ -96,9 +97,7 @@ export function TenantSettings() {
       <Card className="max-w-lg">
         <CardHeader>
           <CardTitle>Team Logo</CardTitle>
-          <CardDescription>
-            Upload or update your team's logo.
-          </CardDescription>
+          <CardDescription>Upload or update your team's logo.</CardDescription>
         </CardHeader>
         <CardContent>
           <TenantLogoUpload />
@@ -122,7 +121,10 @@ export function TenantSettings() {
             </div>
           ) : (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -149,6 +151,8 @@ export function TenantSettings() {
           )}
         </CardContent>
       </Card>
+
+      <TenantUsersTable />
     </div>
   );
 }

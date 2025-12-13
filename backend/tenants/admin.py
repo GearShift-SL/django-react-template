@@ -58,5 +58,14 @@ class TenantUserAdmin(admin.ModelAdmin):
 
 @admin.register(Invitation)
 class InvitationAdmin(admin.ModelAdmin):
-    # The code and created field should be read-only
-    readonly_fields = ["code", "created_at"]
+    list_display = ["email", "invited_by", "last_sent_at", "accepted_at", "created_at"]
+    search_fields = ["email", "invited_by__user__email"]
+    ordering = ["-created_at"]
+    list_filter = ["accepted_at", "created_at"]
+    readonly_fields = ["created_at", "updated_at"]
+    autocomplete_fields = ["invited_by"]
+    fieldsets = (
+        (None, {"fields": ["tenant", "email", "invited_by"]}),
+        ("Status", {"fields": ["last_sent_at", "accepted_at"]}),
+        ("Metadata", {"fields": ["created_at", "updated_at"]}),
+    )

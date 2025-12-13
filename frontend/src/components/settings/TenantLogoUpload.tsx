@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
+
 import {
   tenantsTenantLogoCreate,
-  tenantsTenantLogoDestroy,
-  tenantsTenantMeRetrieve
-} from "@/api/django/tenants/tenants";
+  tenantsTenantLogoDestroy
+} from "@/api/django/tenant-logo/tenant-logo";
 
 export function TenantLogoUpload() {
   const [isUploading, setIsUploading] = useState(false);

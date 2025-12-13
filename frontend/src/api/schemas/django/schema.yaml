@@ -458,7 +458,7 @@ paths:
       operationId: tenants_invitations_list
       description: A viewset that provides the `create` and `list` actions.
       tags:
-      - tenants
+      - Tenant Invitations
       security:
       - cookieAuth: []
       responses:
@@ -474,7 +474,7 @@ paths:
       operationId: tenants_invitations_create
       description: A viewset that provides the `create` and `list` actions.
       tags:
-      - tenants
+      - Tenant Invitations
       requestBody:
         content:
           application/json:
@@ -496,11 +496,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invitation'
           description: ''
+  /tenants/invitations/{id}/resend/:
+    post:
+      operationId: tenants_invitations_resend_create
+      description: |-
+        Resend an invitation email.
+        Returns 403 if the last invitation was sent less than 24 hours ago.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this invitation.
+        required: true
+      tags:
+      - Tenant Invitations
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+          description: ''
   /tenants/tenant-logo/:
     get:
       operationId: tenants_tenant_logo_retrieve
       tags:
-      - tenants
+      - Tenant Logo
       security:
       - cookieAuth: []
       responses:
@@ -513,7 +537,7 @@ paths:
     post:
       operationId: tenants_tenant_logo_create
       tags:
-      - tenants
+      - Tenant Logo
       requestBody:
         content:
           multipart/form-data:
@@ -532,7 +556,7 @@ paths:
     delete:
       operationId: tenants_tenant_logo_destroy
       tags:
-      - tenants
+      - Tenant Logo
       security:
       - cookieAuth: []
       responses:
@@ -541,9 +565,9 @@ paths:
   /tenants/tenant-users/:
     get:
       operationId: tenants_tenant_users_list
-      description: List, Retrieve and Update viewset for the TenantUser model.
+      description: List, Update and Destroy viewset for the TenantUser model.
       tags:
-      - tenants
+      - Tenant Users
       security:
       - cookieAuth: []
       responses:
@@ -556,30 +580,9 @@ paths:
                   $ref: '#/components/schemas/TenantUserList'
           description: ''
   /tenants/tenant-users/{id}/:
-    get:
-      operationId: tenants_tenant_users_retrieve
-      description: List, Retrieve and Update viewset for the TenantUser model.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this tenant user.
-        required: true
-      tags:
-      - tenants
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantUserDetail'
-          description: ''
     put:
       operationId: tenants_tenant_users_update
-      description: List, Retrieve and Update viewset for the TenantUser model.
+      description: List, Update and Destroy viewset for the TenantUser model.
       parameters:
       - in: path
         name: id
@@ -588,7 +591,7 @@ paths:
         description: A unique integer value identifying this tenant user.
         required: true
       tags:
-      - tenants
+      - Tenant Users
       requestBody:
         content:
           application/json:
@@ -607,43 +610,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TenantUserDetail'
-          description: ''
-    patch:
-      operationId: tenants_tenant_users_partial_update
-      description: List, Retrieve and Update viewset for the TenantUser model.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this tenant user.
-        required: true
-      tags:
-      - tenants
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantUserDetail'
+                $ref: '#/components/schemas/TenantUserUpdate'
           description: ''
     delete:
       operationId: tenants_tenant_users_destroy
-      description: List, Retrieve and Update viewset for the TenantUser model.
+      description: List, Update and Destroy viewset for the TenantUser model.
       parameters:
       - in: path
         name: id
@@ -652,82 +623,17 @@ paths:
         description: A unique integer value identifying this tenant user.
         required: true
       tags:
-      - tenants
+      - Tenant Users
       security:
       - cookieAuth: []
       responses:
         '204':
           description: No response body
-  /tenants/tenant-users/me/:
-    get:
-      operationId: tenants_tenant_users_me_retrieve
-      description: List, Retrieve and Update viewset for the TenantUser model.
-      tags:
-      - tenants
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantUserDetail'
-          description: ''
-    put:
-      operationId: tenants_tenant_users_me_update
-      description: List, Retrieve and Update viewset for the TenantUser model.
-      tags:
-      - tenants
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TenantUserUpdateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TenantUserUpdateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TenantUserUpdateRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantUserDetail'
-          description: ''
-    patch:
-      operationId: tenants_tenant_users_me_partial_update
-      description: List, Retrieve and Update viewset for the TenantUser model.
-      tags:
-      - tenants
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantUserUpdateRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantUserDetail'
-          description: ''
   /tenants/tenant/me/:
     get:
       operationId: tenants_tenant_me_retrieve
       tags:
-      - tenants
+      - Tenant Info
       security:
       - cookieAuth: []
       responses:
@@ -740,7 +646,7 @@ paths:
     put:
       operationId: tenants_tenant_me_update
       tags:
-      - tenants
+      - Tenant Info
       requestBody:
         content:
           application/json:
@@ -753,30 +659,6 @@ paths:
             schema:
               $ref: '#/components/schemas/TenantRequest'
         required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-          description: ''
-    patch:
-      operationId: tenants_tenant_me_partial_update
-      tags:
-      - tenants
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantRequest'
       security:
       - cookieAuth: []
       responses:
@@ -824,13 +706,16 @@ components:
         invited_by:
           type: integer
           readOnly: true
-        code:
+        last_sent_at:
           type: string
+          format: date-time
           readOnly: true
           nullable: true
-        is_accepted:
-          type: boolean
+        accepted_at:
+          type: string
+          format: date-time
           readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -840,11 +725,11 @@ components:
           format: date-time
           readOnly: true
       required:
-      - code
+      - accepted_at
       - created_at
       - email
       - invited_by
-      - is_accepted
+      - last_sent_at
       - updated_at
     InvitationRequest:
       type: object
@@ -856,25 +741,6 @@ components:
           maxLength: 254
       required:
       - email
-    PatchedTenantRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        logo:
-          type: string
-          format: binary
-        website:
-          type: string
-          format: uri
-          maxLength: 200
-    PatchedTenantUserUpdateRequest:
-      type: object
-      properties:
-        role:
-          $ref: '#/components/schemas/RoleEnum'
     PatchedUserProfileRequest:
       type: object
       properties:
@@ -1052,6 +918,13 @@ components:
           items:
             $ref: '#/components/schemas/TenantUserList'
           readOnly: true
+        tenants_enabled:
+          type: boolean
+          readOnly: true
+        me:
+          allOf:
+          - $ref: '#/components/schemas/TenantUserSimple'
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -1062,10 +935,12 @@ components:
           readOnly: true
       required:
       - created_at
+      - me
       - name
       - pk
       - slug
       - tenant_users
+      - tenants_enabled
       - updated_at
     TenantLogo:
       type: object
@@ -1104,30 +979,6 @@ components:
           maxLength: 200
       required:
       - name
-    TenantUserDetail:
-      type: object
-      properties:
-        pk:
-          type: integer
-          readOnly: true
-          title: ID
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-      - created_at
-      - pk
-      - role
-      - updated_at
     TenantUserList:
       type: object
       properties:
@@ -1139,6 +990,13 @@ components:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           readOnly: true
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
         created_at:
           type: string
           format: date-time
@@ -1149,6 +1007,9 @@ components:
           readOnly: true
       required:
       - created_at
+      - email
+      - first_name
+      - last_name
       - pk
       - role
       - updated_at
@@ -1163,6 +1024,11 @@ components:
           $ref: '#/components/schemas/RoleEnum'
       required:
       - pk
+    TenantUserUpdate:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
     TenantUserUpdateRequest:
       type: object
       properties:

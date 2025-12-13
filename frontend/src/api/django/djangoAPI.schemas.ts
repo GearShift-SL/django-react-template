@@ -20,8 +20,9 @@ export interface Invitation {
   email: string;
   readonly invited_by: number;
   /** @nullable */
-  readonly code: string | null;
-  readonly is_accepted: boolean;
+  readonly last_sent_at: string | null;
+  /** @nullable */
+  readonly accepted_at: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -32,21 +33,6 @@ export interface InvitationRequest {
    * @maxLength 254
    */
   email: string;
-}
-
-export interface PatchedTenantRequest {
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  name?: string;
-  logo?: Blob;
-  /** @maxLength 200 */
-  website?: string;
-}
-
-export interface PatchedTenantUserUpdateRequest {
-  role?: RoleEnum;
 }
 
 export interface PatchedUserProfileRequest {
@@ -171,6 +157,8 @@ export interface Tenant {
   /** @maxLength 200 */
   website?: string;
   readonly tenant_users: readonly TenantUserList[];
+  readonly tenants_enabled: boolean;
+  readonly me: TenantUserSimple;
   readonly created_at: string;
   readonly updated_at: string;
 }
@@ -195,22 +183,22 @@ export interface TenantRequest {
   website?: string;
 }
 
-export interface TenantUserDetail {
-  readonly pk: number;
-  readonly role: RoleEnum;
-  readonly created_at: string;
-  readonly updated_at: string;
-}
-
 export interface TenantUserList {
   readonly pk: number;
   readonly role: RoleEnum;
+  email: string;
+  first_name: string;
+  last_name: string;
   readonly created_at: string;
   readonly updated_at: string;
 }
 
 export interface TenantUserSimple {
   readonly pk: number;
+  role?: RoleEnum;
+}
+
+export interface TenantUserUpdate {
   role?: RoleEnum;
 }
 
