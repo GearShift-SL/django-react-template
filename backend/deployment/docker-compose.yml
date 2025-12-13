@@ -1,69 +1,166 @@
+# ---------------------------------------------------------------------------
+# Django App Template (YAML Anchor)
+# ---------------------------------------------------------------------------
+# Defines common configuration shared across multiple Django-based services:
+#   - django: Main web application server
+#   - worker: Celery worker for async task processing
+#   - beat: Celery beat scheduler for periodic tasks
+# Using YAML anchors (x-*) reduces duplication and ensures consistency
+x-django-app: &django-app
+  restart: unless-stopped
+  image: mydockerregistry.com/my-app-backend:latest
+  env_file:
+    # Environment variables (database, Redis, secrets, etc.)
+    - ./.env
+  volumes:
+    # Media files volume - shared across all Django services
+    - ./media:/app/backend/media
+
+
 services:
-  # Postgres service
-  # Comment out if using an external Postgres server
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  # Primary relational database for the application:
+  #   - Stores all application data (users, tenants, business data)
+  #   - Runs initialization scripts on first startup
+  #   - Data persisted to local volume for durability
+  # Note: Comment out this service if using an external PostgreSQL server
   postgres:
     restart: unless-stopped
     image: postgres:16-bullseye
     environment:
+      # Database credentials - loaded from .env file
       POSTGRES_DB: ${POSTGRES_DB_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
+      # Persistent data storage - database files stored on host
       - ./postgresdata:/var/lib/postgresql/data
-      # Copy the provision_postgres.sql file to the container
+      # Initialization script - runs once on first container startup
+      # Used for database provisioning (extensions, initial setup, etc.)
       - ./provision_postgres.sql:/docker-entrypoint-initdb.d/provision_postgres.sql
-    # Uncomment the following lines to expose the Postgres port
+    # Uncomment to expose PostgreSQL port for external access
+    # (e.g., for database GUI tools or external clients)
     # ports:
     #   - 5432:5432
 
-  # Redis service
-  # Comment out if using an external Redis server
+  # ---------------------------------------------------------------------------
+  # Redis Cache & Message Broker
+  # ---------------------------------------------------------------------------
+  # In-memory data store used for multiple purposes:
+  #   - Cache backend for faster data access
+  #   - Message broker for Celery (task queue)
+  #   - Session storage (optional)
+  # Note: Comment out this service if using an external Redis server
   redis:
     restart: unless-stopped
     image: redis:7.2.0-alpine
-    # Uncomment the following lines to expose the Redis port
+    # Uncomment to expose Redis port for external access
+    # (e.g., for Redis CLI, monitoring tools, or external clients)
     # ports:
     #   - 6379:6379
 
+  # ---------------------------------------------------------------------------
+  # Django Web Application
+  # ---------------------------------------------------------------------------
+  # Main Django application server (typically running with Gunicorn):
+  #   - Handles HTTP requests from nginx reverse proxy
+  #   - Serves REST API endpoints
+  #   - Runs database migrations on startup
+  #   - Collects static files on startup
+  # Health check ensures the app is ready before starting dependent services
   django:
-    restart: unless-stopped
-    image: dockerregistry.hlab.es/autoipc-be:latest
-    env_file:
-      - ./.env
+    <<: *django-app
+    # Custom entrypoint script - handles migrations, static files, and starts server
     entrypoint: /app/backend/docker/entrypoint-django.sh
     ports:
+      # Internal port - typically accessed through nginx (port 8080)
+      # Can also be accessed directly at http://localhost:8000 for debugging
       - 8000:8000
-    volumes:
-      - ./media:/app/backend/media
+    depends_on:
+      # PostgreSQL must be started (but not necessarily ready)
+      postgres:
+        condition: service_started
+      # Redis must be started (but not necessarily ready)
+      redis:
+        condition: service_started
     healthcheck:
+      # Checks if Django is responding to HTTP requests
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/ht/startup-probe/"]
       interval: 30s
       timeout: 10s
       retries: 3
+      # Grace period for Django to start up (migrations, etc.)
       start_period: 20s
 
+  # ---------------------------------------------------------------------------
+  # Celery Worker
+  # ---------------------------------------------------------------------------
+  # Asynchronous task processor using Celery:
+  #   - Executes background tasks (emails, reports, data processing)
+  #   - Pulls tasks from Redis message queue
+  #   - Runs independently from web requests for better performance
+  #   - Can be scaled horizontally by running multiple worker containers
+  # Waits for Django to be healthy to ensure migrations are complete
   worker:
-    restart: unless-stopped
-    image: dockerregistry.hlab.es/autoipc-be:latest
-    env_file:
-      - ./.env
+    <<: *django-app
+    # Custom entrypoint script - starts Celery worker process
     entrypoint: /app/backend/docker/entrypoint-worker.sh
-    volumes:
-      - ./media:/app/backend/media
     depends_on:
+      # PostgreSQL must be started
+      postgres:
+        condition: service_started
+      # Django must be healthy (migrations complete, app ready)
       django:
         condition: service_healthy
+      # Redis must be started (message broker for tasks)
       redis:
         condition: service_started
 
+  # ---------------------------------------------------------------------------
+  # Celery Beat Scheduler
+  # ---------------------------------------------------------------------------
+  # Periodic task scheduler using Celery Beat:
+  #   - Schedules and triggers periodic tasks (cron-like functionality)
+  #   - Sends scheduled tasks to Redis for worker processing
+  #   - Handles tasks like cleanup jobs, report generation, reminders
+  # Only ONE beat instance should run (multiple instances cause duplicate tasks)
+  # Waits for Django to be healthy to ensure migrations are complete
   beat:
-    restart: unless-stopped
-    image: dockerregistry.hlab.es/autoipc-be:latest
-    env_file:
-      - ./.env
+    <<: *django-app
+    # Custom entrypoint script - starts Celery beat scheduler process
     entrypoint: /app/backend/docker/entrypoint-beat.sh
     depends_on:
+      # PostgreSQL must be started
+      postgres:
+        condition: service_started
+      # Django must be healthy (migrations complete, app ready)
       django:
         condition: service_healthy
+      # Redis must be started (message broker for scheduled tasks)
       redis:
         condition: service_started
+  
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # ---------------------------------------------------------------------------
+  # Serves as the main entry point for HTTP traffic:
+  #   - Proxies requests to Django application
+  #   - Serves static files directly (faster than Django)
+  #   - Serves media files directly
+  #   - Can handle SSL termination (configure in nginx.conf)
+  nginx:
+    image: nginx:1.28
+    restart: unless-stopped
+    ports:
+      # Main application entry point - access the app at http://localhost:8080
+      - "8080:80"
+    volumes:
+      # Nginx configuration file (read-only mount)
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # Media files volume - must match Django's MEDIA_ROOT
+      - ./media:/app/backend/media
+    depends_on:
+      # Wait for Django to be available before starting
+      - django
