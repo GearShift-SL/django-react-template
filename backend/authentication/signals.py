@@ -5,12 +5,11 @@ This file contains the signals for the authentication app.
 """
 
 from django.dispatch import receiver
-from allauth.account.signals import user_signed_up, email_confirmed
+from allauth.account.signals import email_confirmed
 from django.db.models.signals import pre_save, post_save
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from tenants.models import Tenant, TenantUser
-from utils.loops import create_contact_task, update_or_create_contact_task
+from utils.loops import update_or_create_contact_task
 from .models import UserProfile
 
 
@@ -26,25 +25,6 @@ def create_user_profile(sender, instance, created, **kwargs):
     """
     if created:
         UserProfile.objects.create(user=instance)
-
-
-@receiver(user_signed_up)
-def on_user_signed_up(sender, request, user, **kwargs):
-    """
-    Trigger stuff when a user signs up:
-        1. Create a tenant and tenant user for the current user
-    """
-    log.debug(f"Request: {request}")
-
-    # Create a tenant and tenant user for the current user
-    # Use first name if available, otherwise fall back to email
-    if user.first_name:
-        tenant_name = f"{user.first_name}'s team"
-    else:
-        tenant_name = f"{user.email.split('@')[0]}'s team"
-
-    tenant = Tenant.objects.create(name=tenant_name)
-    TenantUser.objects.create(user=user, tenant=tenant, role="owner")
 
 
 @receiver(email_confirmed)
