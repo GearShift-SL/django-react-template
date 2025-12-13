@@ -1,0 +1,89 @@
+# This workflow will build the application's Docker images (backend, frontend and services)
+# and push them to a private docker registry when a production release tag (i.e.: 1.0.1)
+# is pushed to the repository.
+#
+#
+# Required actions secrets:
+# - DOCKER_USERNAME: Username for docker registry login
+# - DOCKER_PASSWORD: Password for docker registry login
+#
+# Required actions variables:
+# - DOCKER_REGISTRY: Docker registry hostname for authentication (e.g. ghcr.io, docker.mydomain.com)
+# - DOCKER_REPOSITORY: Full image prefix including registry (e.g. docker.mydomain.com, ghcr.io/myorg)
+
+name: Build and Deploy Prod
+
+# Triggers
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+" # Push events to matching numeric semver tags, i.e., 1.0.0, 20.15.10
+
+jobs:
+  docker-build:
+    # Use GitHub-hosted Ubuntu runner for Docker builds
+    runs-on: ubuntu-latest
+    # Alternative: use self-hosted runner if you have one configured
+    # runs-on: self-hosted
+
+    strategy:
+      # Continue building other images even if one fails
+      fail-fast: false
+      # Build matrix: defines multiple images to build in parallel
+      # Each matrix entry will create a separate job instance
+      matrix:
+        include:
+          # Backend Django application
+          - name: django-backend
+            context: ./backend
+            dockerfile: ./backend/docker/Dockerfile
+          # Frontend React application
+          - name: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch all git history (needed for accurate versioning)
+          fetch-depth: 0
+
+      # Step 2: Set up Docker Buildx for advanced build features
+      # Buildx provides improved caching and multi-platform builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # Step 3: Authenticate with the Docker registry
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
+      # Step 4: Extract the version tag from the git reference
+      # Example: refs/tags/1.0.1 becomes 1.0.1
+      - name: Get the tag name
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      # Step 5: Build and push the Docker image to the registry
+      - name: Build & push Docker image - ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          # Build context directory (where to find source files)
+          context: ${{ matrix.context }}
+          # Path to the Dockerfile to use
+          file: ${{ matrix.dockerfile }}
+          # Push the image to registry after building
+          push: true
+          # Tag the image with both version number and 'latest'
+          tags: |
+            ${{ vars.DOCKER_REPOSITORY }}/${{ matrix.name }}:${{ steps.get_version.outputs.VERSION }}
+            ${{ vars.DOCKER_REPOSITORY }}/${{ matrix.name }}:latest
+          # Use registry cache for faster builds (pull cache layers)
+          cache-from: type=registry,ref=${{ vars.DOCKER_REPOSITORY }}/${{ matrix.name }}:buildcache
+          # Push build cache back to registry (mode=max saves all layers)
+          cache-to: type=registry,ref=${{ vars.DOCKER_REPOSITORY }}/${{ matrix.name }}:buildcache,mode=max
