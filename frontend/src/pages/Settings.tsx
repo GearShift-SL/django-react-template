@@ -91,10 +91,10 @@ const Settings = () => {
         <div id="settings-container" className="flex flex-col gap-6 py-6">
           <Tabs defaultValue="user" className="w-full">
             <TabsList
-              className={`grid w-full max-w-md grid-cols-${
+              className={`grid w-full max-w-md ${
                 tenant?.tenants_enabled && tenant?.me?.role !== RoleEnum.user
-                  ? "2"
-                  : "1"
+                  ? "grid-cols-2"
+                  : "grid-cols-1"
               }`}
             >
               <TabsTrigger value="user">User Settings</TabsTrigger>
