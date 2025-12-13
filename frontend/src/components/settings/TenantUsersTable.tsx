@@ -36,12 +36,15 @@ import {
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   tenantsTenantUsersList,
   tenantsTenantUsersUpdate
 } from "@/api/django/tenant-users/tenant-users";
+import { tenantsInvitationsCreate } from "@/api/django/tenant-invitations/tenant-invitations";
 import type { TenantUserList } from "@/api/django/djangoAPI.schemas";
 import { RoleEnum } from "@/api/django/djangoAPI.schemas";
 import { useTenantStore } from "@/stores/TenantStore";
@@ -65,6 +68,9 @@ export function TenantUsersTable() {
   const [editingUser, setEditingUser] = useState<TenantUserList | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -120,6 +126,44 @@ export function TenantUsersTable() {
       toast.error("Failed to update role. Please try again.");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleOpenInviteDialog = () => {
+    setIsInviteDialogOpen(true);
+    setInviteEmail("");
+  };
+
+  const handleCloseInviteDialog = () => {
+    setIsInviteDialogOpen(false);
+    setInviteEmail("");
+  };
+
+  const handleSendInvite = async () => {
+    if (!inviteEmail.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inviteEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsSendingInvite(true);
+    try {
+      await tenantsInvitationsCreate({ email: inviteEmail });
+      toast.success("Invitation sent successfully");
+      handleCloseInviteDialog();
+      // Optionally refresh the users list
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to send invitation:", error);
+      toast.error("Failed to send invitation. Please try again.");
+    } finally {
+      setIsSendingInvite(false);
     }
   };
 
@@ -222,6 +266,17 @@ export function TenantUsersTable() {
               </TableBody>
             </Table>
           )}
+          <div className="mt-4 flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenInviteDialog}
+              className="gap-2 hover:cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Invite User
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -262,6 +317,46 @@ export function TenantUsersTable() {
               disabled={selectedRole === editingUser?.role}
             >
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite User Dialog */}
+      <Dialog
+        open={isInviteDialogOpen}
+        onOpenChange={(open) => !open && handleCloseInviteDialog()}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite User</DialogTitle>
+            <DialogDescription>
+              Send an invitation to join your team. They will receive an email
+              with instructions to create an account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="invite-email">Email</Label>
+            <Input
+              id="invite-email"
+              type="email"
+              placeholder="user@example.com"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSendInvite();
+                }
+              }}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseInviteDialog}>
+              Cancel
+            </Button>
+            <Button onClick={handleSendInvite} loading={isSendingInvite}>
+              Send Invitation
             </Button>
           </DialogFooter>
         </DialogContent>
