@@ -43,6 +43,11 @@ services:
     entrypoint: /app/backend/docker/entrypoint-django.sh
     ports:
       - 8000:8000
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/ht/startup-probe/"]
       interval: 30s
@@ -54,6 +59,8 @@ services:
     <<: *django-app
     entrypoint: /app/backend/docker/entrypoint-worker.sh
     depends_on:
+      postgres:
+        condition: service_started
       django:
         condition: service_healthy
       redis:
@@ -63,6 +70,8 @@ services:
     <<: *django-app
     entrypoint: /app/backend/docker/entrypoint-beat.sh
     depends_on:
+      postgres:
+        condition: service_started
       django:
         condition: service_healthy
       redis:
