@@ -18,7 +18,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
-import { authLogout } from "@/api/django/auth/auth";
+import { authLogout } from "@/api/django/authentication-session/authentication-session";
 import { useUserStore } from "@/stores/UserStore";
 
 export function NavUser() {

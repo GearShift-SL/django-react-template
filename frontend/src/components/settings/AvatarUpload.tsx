@@ -5,7 +5,7 @@ import { Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import { ImageCropper } from "./ImageCropper";
-import { authProfileMePartialUpdate } from "@/api/django/auth/auth";
+import { authProfileMePartialUpdate } from "@/api/django/authentication-user-profile/authentication-user-profile";
 import type { PatchedUserProfileRequest } from "@/api/django/djangoAPI.schemas";
 
 export function AvatarUpload() {

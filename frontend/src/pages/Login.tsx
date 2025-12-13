@@ -2,7 +2,14 @@ import { LoginForm } from "@/components/login/LoginForm";
 import type { LoginFormValues } from "@/components/login/LoginForm";
 import { toast } from "sonner";
 import RedirectIfAuthenticatedLayout from "@/layouts/RedirectIfAuthenticatedLayout";
-import { authStart, authProvidersList } from "@/api/django/auth/auth";
+import {
+  authStart,
+  authConfirmCode
+} from "@/api/django/authentication-email/authentication-email";
+import {
+  authProvidersList,
+  authProviderToken
+} from "@/api/django/authentication-provider/authentication-provider";
 import { useState, useEffect } from "react";
 import type { Provider } from "@/api/django/djangoAPI.schemas";
 import {
@@ -11,7 +18,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot
 } from "@/components/ui/input-otp";
-import { authConfirmCode } from "@/api/django/auth/auth";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/assets/icon.svg?react";
 import {
@@ -19,7 +25,6 @@ import {
   GoogleLogin,
   type CredentialResponse
 } from "@react-oauth/google";
-import { authProviderToken } from "@/api/django/auth/auth";
 
 const Login = () => {
   const navigate = useNavigate();
