@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { authUserMeRetrieve } from "@/api/django/auth/auth";
+import { authUserMeRetrieve } from "@/api/django/authentication-user/authentication-user";
 
 interface Props {
   children: React.ReactNode;

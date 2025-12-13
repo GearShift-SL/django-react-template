@@ -1,11 +1,22 @@
+# Django Rest Framework
 from rest_framework import serializers
 
+# Tenants App
 from tenants.serializers import SimpleTenantSerializer, TenantUserSimpleSerializer
 
+# Local App
 from .models import User, UserProfile
 
 
+# ============================================================================
+# Authentication Flow Serializers
+# ============================================================================
+
+
 class StartAuthRequestSerializer(serializers.Serializer):
+    """
+    Request serializer for starting authentication flow (login or signup).
+    """
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False)
 
@@ -34,67 +45,111 @@ class StartAuthErrorSerializer(serializers.Serializer):
 
 
 class CodeConfirmRequestSerializer(serializers.Serializer):
-    code = serializers.CharField()  # length per your OTP (e.g., max_length=6/8)
+    """
+    Request serializer for confirming login code.
+    """
+
+    code = serializers.CharField()
 
 
 class CodeConfirmResponseSerializer(serializers.Serializer):
-    # Tweak to match what Allauth returns in your setup (user, tokens, etc.)
+    """
+    Response serializer for successful code confirmation.
+    """
+
     user = serializers.DictField()
-    # access = serializers.CharField(required=False)
-    # refresh = serializers.CharField(required=False)
 
 
 class CodeConfirmErrorSerializer(serializers.Serializer):
+    """
+    Error serializer for code confirmation failures.
+    """
+
     code = serializers.CharField()
     detail = serializers.CharField()
 
 
 class ProviderTokenRequestSerializer(serializers.Serializer):
-    provider = serializers.CharField()  # e.g. "google"
+    """
+    Request serializer for social provider authentication.
+    """
+
+    provider = serializers.CharField()
     process = serializers.ChoiceField(choices=["login", "connect"])
-    token = (
-        serializers.DictField()
-    )  # e.g. {"id_token": "..."} or {"access_token": "..."}
+    token = serializers.DictField()
 
 
 class ProviderTokenResponseSerializer(serializers.Serializer):
+    """
+    Response serializer for successful provider authentication.
+    """
+
     user = serializers.DictField()
-    # access = serializers.CharField(required=False)
-    # refresh = serializers.CharField(required=False)
 
 
 class ProviderTokenErrorSerializer(serializers.Serializer):
+    """
+    Error serializer for provider authentication failures.
+    """
+
     code = serializers.CharField()
     detail = serializers.CharField()
 
 
 class ProviderSerializer(serializers.Serializer):
+    """
+    Serializer for social provider information.
+    """
+
     provider = serializers.CharField()
     client_id = serializers.CharField(allow_blank=True, required=False)
 
 
 class ProvidersListResponseSerializer(serializers.Serializer):
+    """
+    Response serializer for listing available social providers.
+    """
+
     providers = ProviderSerializer(many=True)
 
 
 class SessionStatusResponseSerializer(serializers.Serializer):
-    # adapt to your response (many setups include user info)
+    """
+    Response serializer for session status information.
+    """
+
     user = serializers.DictField(required=False)
     is_authenticated = serializers.BooleanField(required=False)
 
 
 class SessionStatusErrorSerializer(serializers.Serializer):
+    """
+    Error serializer for session status failures.
+    """
+
     code = serializers.CharField()
     detail = serializers.CharField()
 
 
+# ============================================================================
+# User and Profile Serializers
+# ============================================================================
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user profile data (avatar, etc.).
+    """
     class Meta:
         model = UserProfile
         fields = ["avatar"]
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for basic user information.
+    """
+
     profile = UserProfileSerializer(read_only=True)
 
     class Meta:
@@ -104,6 +159,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for current authenticated user with tenant information.
+    """
+
     tenant = SimpleTenantSerializer(read_only=True)
     tenant_user = TenantUserSimpleSerializer(read_only=True)
     profile = UserProfileSerializer(read_only=True)

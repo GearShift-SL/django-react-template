@@ -1,5 +1,9 @@
+# django
 from django.contrib.auth import get_user_model
+import logging
+import json
 
+# Django Rest Framework
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -8,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+# Allauth
 from allauth.headless.account.views import (
     ConfirmLoginCodeView as AllauthConfirmLoginCodeView,
     RequestLoginCodeView as AllauthRequestLoginCodeView,
@@ -18,6 +23,7 @@ from allauth.headless.socialaccount.views import (
     ProviderTokenView as AllauthProviderTokenView,
 )
 
+# DRF Spectacular
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
@@ -26,6 +32,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 
+# Local App
 from .serializers import (
     CodeConfirmErrorSerializer,
     CodeConfirmRequestSerializer,
@@ -45,28 +52,12 @@ from .serializers import (
 )
 from .models import User, UserProfile
 
-import logging
-import json
-
 log = logging.getLogger(__name__)
 
 
-class StartAuthView(APIView):
-    """
-    POST /auth/<client>/start
-
-    If a user with the given identifier exists:
-        -> delegate to allauth.headless.account.views.RequestLoginCodeView
-    Else:
-        -> delegate to allauth.headless.account.views.SignupView
-    """
-
-    permission_classes = [AllowAny]
-    # throttle_classes = [ScopedRateThrottle]
-    # throttle_scope = "auth_start"
-
-    @extend_schema(
-        tags=["auth"],
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Authentication Email"],
         operation_id="auth_start",
         parameters=[
             OpenApiParameter(
@@ -74,7 +65,7 @@ class StartAuthView(APIView):
                 location=OpenApiParameter.PATH,
                 required=True,
                 description="The type of client accessing the API.",
-                enum=["app", "browser"],  # keep in sync with your routing
+                enum=["app", "browser"],
             ),
         ],
         request=StartAuthRequestSerializer,
@@ -112,6 +103,21 @@ class StartAuthView(APIView):
             "Otherwise, create the user (per your Allauth config) and then proceed."
         ),
     )
+)
+class StartAuthView(APIView):
+    """
+    POST /auth/<client>/start
+
+    If a user with the given identifier exists:
+        -> delegate to allauth.headless.account.views.RequestLoginCodeView
+    Else:
+        -> delegate to allauth.headless.account.views.SignupView
+    """
+
+    permission_classes = [AllowAny]
+    # throttle_classes = [ScopedRateThrottle]
+    # throttle_scope = "auth_start"
+
     def post(self, request: Request, client: str, *args, **kwargs):
         # Parse JSON without touching DRF's request.data to avoid consuming the stream
         try:
@@ -146,18 +152,9 @@ class StartAuthView(APIView):
             return view(request._request, *args, **kwargs)
 
 
-class ConfirmLoginCodeView(APIView):
-    """
-    POST /auth/<client>/code/confirm
-    Delegates to allauth.headless.account.views.ConfirmLoginCodeView
-    """
-
-    permission_classes = [AllowAny]
-    # throttle_classes = [ScopedRateThrottle]
-    # throttle_scope = "auth_code_confirm"
-
-    @extend_schema(
-        tags=["auth"],
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Authentication Email"],
         operation_id="auth_confirm_code",
         parameters=[
             OpenApiParameter(
@@ -165,7 +162,7 @@ class ConfirmLoginCodeView(APIView):
                 location=OpenApiParameter.PATH,
                 required=True,
                 description="The type of client accessing the API.",
-                enum=["app", "browser"],  # keep in sync with your routing
+                enum=["app", "browser"],
             ),
         ],
         request=CodeConfirmRequestSerializer,
@@ -176,7 +173,7 @@ class ConfirmLoginCodeView(APIView):
             ),
             400: CodeConfirmErrorSerializer,
             401: CodeConfirmErrorSerializer,
-            409: CodeConfirmErrorSerializer,  # flow not pending
+            409: CodeConfirmErrorSerializer,
             429: CodeConfirmErrorSerializer,
         },
         examples=[
@@ -189,6 +186,17 @@ class ConfirmLoginCodeView(APIView):
         summary="Confirm login code",
         description='Use this endpoint to pass along the received one-time "special" login code.',
     )
+)
+class ConfirmLoginCodeView(APIView):
+    """
+    POST /auth/<client>/code/confirm
+    Delegates to allauth.headless.account.views.ConfirmLoginCodeView
+    """
+
+    permission_classes = [AllowAny]
+    # throttle_classes = [ScopedRateThrottle]
+    # throttle_scope = "auth_code_confirm"
+
     def post(self, request: Request, client: str, *args, **kwargs):
         # validate for docs + early 400s without consuming DRF request.data
         try:
@@ -204,19 +212,9 @@ class ConfirmLoginCodeView(APIView):
         return allauth_view(request._request, *args, **kwargs)
 
 
-class ProviderTokenView(APIView):
-    """
-    POST /auth/<client>/provider/token
-
-    Delegates 1:1 to allauth.headless.account.views.ProviderTokenView.
-    """
-
-    permission_classes = [AllowAny]
-    # throttle_classes = [ScopedRateThrottle]
-    # throttle_scope = "auth_provider_token"
-
-    @extend_schema(
-        tags=["auth"],
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Authentication Provider"],
         operation_id="auth_provider_token",
         parameters=[
             OpenApiParameter(
@@ -224,7 +222,7 @@ class ProviderTokenView(APIView):
                 location=OpenApiParameter.PATH,
                 required=True,
                 description="The type of client accessing the API.",
-                enum=["app", "browser"],  # keep in sync with your routes
+                enum=["app", "browser"],
             ),
             OpenApiParameter(
                 name="X-Session-Token",
@@ -239,10 +237,10 @@ class ProviderTokenView(APIView):
                 response=ProviderTokenResponseSerializer,
                 description="The user is authenticated.",
             ),
-            400: ProviderTokenErrorSerializer,  # input error
-            401: ProviderTokenErrorSerializer,  # not authenticated / more steps required
-            403: ProviderTokenErrorSerializer,  # signup closed, etc.
-            429: ProviderTokenErrorSerializer,  # if you throttle
+            400: ProviderTokenErrorSerializer,
+            401: ProviderTokenErrorSerializer,
+            403: ProviderTokenErrorSerializer,
+            429: ProviderTokenErrorSerializer,
         },
         examples=[
             OpenApiExample(
@@ -272,6 +270,18 @@ class ProviderTokenView(APIView):
             "`X-Session-Token` header from the prior app session bootstrap."
         ),
     )
+)
+class ProviderTokenView(APIView):
+    """
+    POST /auth/<client>/provider/token
+
+    Delegates 1:1 to allauth.headless.account.views.ProviderTokenView.
+    """
+
+    permission_classes = [AllowAny]
+    # throttle_classes = [ScopedRateThrottle]
+    # throttle_scope = "auth_provider_token"
+
     def post(self, request: Request, client: str, *args, **kwargs):
         # Optional: validate so your API returns clean 400s before delegating, without consuming DRF request.data
         try:
@@ -287,17 +297,9 @@ class ProviderTokenView(APIView):
         return allauth_view(request._request, *args, **kwargs)
 
 
-class ProvidersListView(APIView):
-    """
-    GET /auth/providers
-
-    Returns the configured Allauth providers and their client IDs for the current site.
-    """
-
-    permission_classes = [AllowAny]
-
-    @extend_schema(
-        tags=["auth"],
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Authentication Provider"],
         operation_id="auth_providers_list",
         responses={
             200: OpenApiResponse(
@@ -308,6 +310,16 @@ class ProvidersListView(APIView):
         summary="List social providers",
         description="Returns enabled Allauth providers and their client IDs.",
     )
+)
+class ProvidersListView(APIView):
+    """
+    GET /auth/providers
+
+    Returns the configured Allauth providers and their client IDs for the current site.
+    """
+
+    permission_classes = [AllowAny]
+
     def get(self, request: Request, *args, **kwargs):
         # Derive providers from settings and installed apps
         from django.conf import settings
@@ -348,7 +360,7 @@ class ProvidersListView(APIView):
 
 @extend_schema_view(
     get=extend_schema(
-        tags=["auth"],
+        tags=["Authentication Session"],
         operation_id="auth_session_status",
         summary="Get authentication status",
         description="Retrieve information about the authentication status for the current session.",
@@ -373,11 +385,11 @@ class ProvidersListView(APIView):
                 description="The user is authenticated.",
             ),
             401: SessionStatusErrorSerializer,
-            410: SessionStatusErrorSerializer,  # session invalid/no longer exists
+            410: SessionStatusErrorSerializer,
         },
     ),
     delete=extend_schema(
-        tags=["auth"],
+        tags=["Authentication Session"],
         operation_id="auth_logout",
         summary="Logout",
         description="Logs out the user from the current session.",
@@ -401,7 +413,7 @@ class ProvidersListView(APIView):
                 response=SessionStatusResponseSerializer,
                 description="Logged out (or no-op if already logged out).",
             ),
-            401: SessionStatusErrorSerializer,  # no authenticated session
+            401: SessionStatusErrorSerializer,
         },
     ),
 )
@@ -426,7 +438,12 @@ class SessionView(APIView):
         return self._delegate(request, client, *args, **kwargs)
 
 
+@extend_schema_view(me=extend_schema(tags=["Authentication User"]))
 class UserViewSet(GenericViewSet):
+    """
+    ViewSet for managing the current user's profile.
+    """
+
     serializer_class = UserSerializer
 
     def get_queryset(self):
@@ -438,7 +455,7 @@ class UserViewSet(GenericViewSet):
             return UserMeSerializer
         return UserSerializer
 
-    @action(detail=False, methods=["get", "put", "patch"])
+    @action(detail=False, methods=["get", "patch"])
     def me(self, request):
         if request.method == "GET":
             return Response(self.get_serializer(request.user).data)
@@ -450,7 +467,11 @@ class UserViewSet(GenericViewSet):
         return Response(UserMeSerializer(request.user).data)
 
 
+@extend_schema_view(me=extend_schema(tags=["Authentication User Profile"]))
 class UserProfileViewSet(GenericViewSet):
+    """
+    ViewSet for managing the current user's profile avatar and other profile data.
+    """
 
     parser_classes = [MultiPartParser]
     serializer_class = UserProfileSerializer
@@ -464,7 +485,7 @@ class UserProfileViewSet(GenericViewSet):
             return UserProfileSerializer
         return UserProfileSerializer
 
-    @action(detail=False, methods=["get", "put", "patch"])
+    @action(detail=False, methods=["get", "patch"])
     def me(self, request):
         profile, created = UserProfile.objects.get_or_create(user=request.user)
 

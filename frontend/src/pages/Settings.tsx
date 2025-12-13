@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
-import { authUserMePartialUpdate } from "@/api/django/auth/auth";
+import { authUserMePartialUpdate } from "@/api/django/authentication-user/authentication-user";
 import { AvatarUpload } from "@/components/settings/AvatarUpload";
 import { TenantSettings } from "@/components/settings/TenantSettings";
 import { RoleEnum } from "@/api/django/djangoAPI.schemas";
