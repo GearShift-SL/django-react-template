@@ -65,7 +65,7 @@ class InvitationAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
     autocomplete_fields = ["invited_by"]
     fieldsets = (
-        (None, {"fields": ["email", "invited_by"]}),
+        (None, {"fields": ["tenant", "email", "invited_by"]}),
         ("Status", {"fields": ["last_sent_at", "accepted_at"]}),
         ("Metadata", {"fields": ["created_at", "updated_at"]}),
     )
