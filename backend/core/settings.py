@@ -503,8 +503,9 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 
-# Run celery tasks in the same shell as the backend in DEBUG mode
-CELERY_ALWAYS_EAGER = DEBUG
+# Run celery tasks synchronously in DEBUG mode (no separate worker needed)
+CELERY_TASK_ALWAYS_EAGER = DEBUG
+CELERY_TASK_EAGER_PROPAGATES = DEBUG  # Propagate exceptions in eager mode
 
 # Configure Beat Periodic Tasks in the database
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
