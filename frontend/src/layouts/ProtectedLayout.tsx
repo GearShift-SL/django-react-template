@@ -19,62 +19,75 @@ import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
 const ProtectedLayout = () => {
   /* ---------------------------------- HOOKS --------------------------------- */
   const location = useLocation();
-  const { setUser } = useUserStore();
-  const { setTenant } = useTenantStore();
+  const { setUser, user } = useUserStore();
+  const { setTenant, tenant } = useTenantStore();
 
   // Local useStates
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Load the user
+  // Load user and tenant data together
   useEffect(() => {
     const controller = new AbortController();
 
-    const fetchUserData = async () => {
+    const fetchData = async () => {
+      // Skip if data is already loaded in the store
+      if (user && tenant) {
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
 
       try {
-        const userDetails = await authUserMeRetrieve({
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+        // Fetch both in parallel
+        const [userDetails, tenantDetails] = await Promise.all([
+          user
+            ? Promise.resolve(user)
+            : authUserMeRetrieve({
+                headers: { "Content-Type": "application/json" },
+                signal: controller.signal
+              }),
+          tenant
+            ? Promise.resolve(tenant)
+            : tenantsTenantMeRetrieve({
+                signal: controller.signal
+              })
+        ]);
 
-        // Set the user details
         console.debug("User logged in:", userDetails);
 
-        const tenantDetails = await tenantsTenantMeRetrieve({
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+        // Update stores only if data was fetched
+        if (!user) {
+          setUser(userDetails);
+        }
 
-        // Set the tenant details
-        console.debug("Tenant details:", tenantDetails);
+        if (!tenant) {
+          setTenant(tenantDetails);
+        }
 
-        // Set the user details
-        setUser(userDetails);
-
-        // Set the tenant details
-        setTenant(tenantDetails);
-
-        // Set the authenticated state
         setIsAuthenticated(true);
-        setIsLoading(false);
-      } catch {
-        console.debug("User not logged in");
-        setIsAuthenticated(false);
-        setIsLoading(false);
+      } catch (error: any) {
+        // Only handle errors that aren't from abort
+        if (error.name !== "AbortError" && error.name !== "CanceledError") {
+          console.debug("User not logged in or error fetching data:", error);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchUserData();
+    fetchData();
 
     return () => {
       // Cleanup
       controller.abort();
     };
-  }, []);
+  }, [user, tenant, setUser, setTenant]);
 
   /* --------------------------------- RENDER --------------------------------- */
   if (isLoading) {
