@@ -477,7 +477,7 @@ class UserProfileView(APIView):
     parser_classes = [JSONParser]
 
     @extend_schema(
-        tags=["Authentication User Profile"],
+        tags=["Authentication Profile"],
         operation_id="profile_get",
         summary="Get user profile",
         description="Retrieve the current user's profile. Avatar field is read-only here. Use /auth/profile/avatar/ for avatar uploads.",
@@ -497,7 +497,7 @@ class UserProfileView(APIView):
         return Response(serializer.data)
 
     @extend_schema(
-        tags=["Authentication User Profile"],
+        tags=["Authentication Profile"],
         operation_id="profile_update",
         summary="Update user profile",
         description="Update the current user's profile. Avatar field is read-only here. Use /auth/profile/avatar/ for avatar uploads.",
