@@ -34,7 +34,7 @@ from authentication.models import User
 class TenantInfoView(APIView):
     """
     API View for managing the current user's tenant information.
-    GET/PATCH /tenant/
+    GET/PATCH /tenants/info/
     """
 
     parser_classes = [JSONParser]
@@ -60,7 +60,7 @@ class TenantInfoView(APIView):
     )
     def get(self, request):
         """
-        GET /tenant/me/
+        GET /tenants/info/
 
         Retrieves tenant data in JSON format. Logo field is read-only here.
         Use the logo endpoint for logo uploads.
@@ -81,7 +81,7 @@ class TenantInfoView(APIView):
     )
     def patch(self, request):
         """
-        PATCH /tenant/me/
+        PATCH /tenants/info/
 
         Updates tenant data in JSON format. Logo field is read-only here.
         Use the logo endpoint for logo uploads.
@@ -98,7 +98,7 @@ class TenantInfoView(APIView):
 class TenantLogoView(APIView):
     """
     API View for managing the current user's tenant logo.
-    PUT/DELETE /tenant/logo/
+    PUT/DELETE /tenants/info/logo/
     """
 
     parser_classes = [MultiPartParser]
@@ -108,7 +108,7 @@ class TenantLogoView(APIView):
         return [permission() for permission in permission_classes]
 
     @extend_schema(
-        tags=["Tenant Logo"],
+        tags=["Tenant Info"],
         operation_id="tenant_logo_upload",
         summary="Upload or replace tenant logo",
         description="Upload or replace the tenant's logo. Expects multipart/form-data.",
@@ -119,7 +119,7 @@ class TenantLogoView(APIView):
     )
     def put(self, request):
         """
-        PUT /tenant/logo/
+        PUT /tenants/info/logo/
 
         Upload or replace tenant logo. Expects multipart/form-data.
         """
@@ -140,7 +140,7 @@ class TenantLogoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        tags=["Tenant Logo"],
+        tags=["Tenant Info"],
         operation_id="tenant_logo_delete",
         summary="Delete tenant logo",
         description="Delete the tenant's logo.",
