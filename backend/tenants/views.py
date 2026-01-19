@@ -26,6 +26,9 @@ from .serializers import (
 from .mixins import TenantAwareMixin
 from .tasks import send_invitation_email_task
 
+# Authentication app
+from authentication.models import User
+
 
 @extend_schema_view(me=extend_schema(tags=["Tenant Info"]))
 class TenantInfoView(APIView):
