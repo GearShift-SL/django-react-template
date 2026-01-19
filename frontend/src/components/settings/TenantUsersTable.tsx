@@ -24,6 +24,15 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -54,6 +63,8 @@ import type {
 } from "@/api/django/djangoAPI.schemas";
 import { RoleEnum } from "@/api/django/djangoAPI.schemas";
 import { useTenantStore } from "@/stores/TenantStore";
+import axios from "axios";
+
 
 const roleLabels: Record<string, string> = {
   owner: "Owner",
@@ -83,6 +94,7 @@ export function TenantUsersTable() {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [showUserExistsAlert, setShowUserExistsAlert] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -178,7 +190,19 @@ export function TenantUsersTable() {
       fetchUsers();
     } catch (error) {
       console.error("Failed to send invitation:", error);
-      toast.error("Failed to send invitation. Please try again.");
+
+      // Check if it's a 409 Conflict error (user already exists)
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        // Close the invite dialog completely
+        setIsInviteDialogOpen(false);
+        setInviteEmail("");
+        // Wait for the dialog to fully close before showing the alert
+        setTimeout(() => {
+          setShowUserExistsAlert(true);
+        }, 400);
+      } else {
+        toast.error("Failed to send invitation. Please try again.");
+      }
     } finally {
       setIsSendingInvite(false);
     }
@@ -404,7 +428,7 @@ export function TenantUsersTable() {
         open={isInviteDialogOpen}
         onOpenChange={(open) => !open && handleCloseInviteDialog()}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Invite User</DialogTitle>
             <DialogDescription>
@@ -438,6 +462,29 @@ export function TenantUsersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* User Already Exists Alert - Only render when invite dialog is closed */}
+      {!isInviteDialogOpen && (
+        <AlertDialog
+          open={showUserExistsAlert}
+          onOpenChange={setShowUserExistsAlert}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>User Already Exists</AlertDialogTitle>
+              <AlertDialogDescription>
+                This user already exists. If you want to invite them to your
+                team, they will need to remove their account first.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowUserExistsAlert(false)}>
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
