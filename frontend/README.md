@@ -2,8 +2,10 @@
 
 ## Initial configuration
 
-1. Upload your favicon in ./public
-2. Upload your logo and icon in ./assets
+1. Copy `.env.template` to `.env` and replace the env variables as needed
+2. Go to `package.json` and `package.json.lock` and change the name of the app
+3. Replace the favicon files in /public
+4. Replace the logo and icon in /src/assets
 
 ## Code Splitting & Bundle Optimization
 
