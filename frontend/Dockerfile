@@ -22,10 +22,10 @@ COPY public/ ./public/
 COPY index.html ./
 
 # Build args that can be passed during build time
-ARG VITE_API_BASE_URL=https://api.example.com
+ARG VITE_APP_NAME=My App
+ARG VITE_API_BASE_URL=https://api.mydomain.com
 ARG VITE_API_TIMEOUT=30000
-ARG VITE_BUILD_VERSION=0.0.0
-ARG VITE_BUILD_DATE=2025-01-01T00:00:00.000Z
+ARG VITE_LANDING_PAGE_URL=http://mydomain.com
 
 # Build the app
 RUN npm run build

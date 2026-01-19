@@ -130,10 +130,10 @@ const Login = () => {
                 href="#"
                 className="flex flex-col items-center gap-2 font-medium"
               >
-                <span className="sr-only">AutoIPC</span>
+                <span className="sr-only">${import.meta.env.VITE_APP_NAME}</span>
               </a>
               <Icon className="h-[50px]" />
-              <h1 className="text-xl font-bold">Welcome to React Frontend</h1>
+              <h1 className="text-xl font-bold">Welcome to ${import.meta.env.VITE_APP_NAME}</h1>
             </div>
             {step === "initial" && (
               <>
@@ -204,11 +204,11 @@ const Login = () => {
             {/* Terms of Service and Privacy Policy */}
             <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
               By continuing, you agree to our{" "}
-              <a href="https://mydomain.com/terms/" target="_blank">
+              <a href={`${import.meta.env.VITE_LANDING_PAGE_URL}/terms/`} target="_blank">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="https://mydomain.com/privacy/" target="_blank">
+              <a href={`${import.meta.env.VITE_LANDING_PAGE_URL}/privacy/`} target="_blank">
                 Privacy Policy
               </a>
               .
