@@ -7,7 +7,7 @@ import { tenantGet } from "@/api/django/tenant-info/tenant-info";
 import {
   tenantLogoUpload,
   tenantLogoDelete
-} from "@/api/django/tenant-logo/tenant-logo";
+} from "@/api/django/tenant-info/tenant-info";
 
 export function TenantLogoUpload() {
   const [isUploading, setIsUploading] = useState(false);

@@ -17,6 +17,7 @@ class StartAuthRequestSerializer(serializers.Serializer):
     """
     Request serializer for starting authentication flow (login or signup).
     """
+
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False)
 
@@ -140,6 +141,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for user profile data (avatar, etc.).
     """
+
+    class Meta:
+        model = UserProfile
+        fields = ["avatar"]
+        read_only_fields = ["avatar"]  # Avatar is read-only on profile endpoint
+
+
+class AvatarUploadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for avatar upload operations.
+    """
+
     class Meta:
         model = UserProfile
         fields = ["avatar"]

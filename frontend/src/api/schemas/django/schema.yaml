@@ -324,13 +324,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/StartAuthError'
           description: ''
-  /auth/profile/me/:
+  /auth/profile/:
     get:
-      operationId: auth_profile_me_retrieve
-      description: ViewSet for managing the current user's profile avatar and other
-        profile data.
+      operationId: profile_get
+      description: Retrieve the current user's profile. Avatar field is read-only
+        here. Use /auth/profile/avatar/ for avatar uploads.
+      summary: Get user profile
       tags:
-      - Authentication User Profile
+      - Authentication Profile
       security:
       - cookieAuth: []
       responses:
@@ -341,16 +342,12 @@ paths:
                 $ref: '#/components/schemas/UserProfile'
           description: ''
     patch:
-      operationId: auth_profile_me_partial_update
-      description: ViewSet for managing the current user's profile avatar and other
-        profile data.
+      operationId: profile_update
+      description: Update the current user's profile. Avatar field is read-only here.
+        Use /auth/profile/avatar/ for avatar uploads.
+      summary: Update user profile
       tags:
-      - Authentication User Profile
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      - Authentication Profile
       security:
       - cookieAuth: []
       responses:
@@ -360,6 +357,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfile'
           description: ''
+  /auth/profile/avatar/:
+    put:
+      operationId: profile_avatar_upload
+      description: Upload or replace the user's avatar. Expects multipart/form-data.
+      summary: Upload or replace avatar
+      tags:
+      - Authentication Profile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AvatarUploadRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvatarUpload'
+          description: ''
+    delete:
+      operationId: profile_avatar_delete
+      description: Delete the user's avatar.
+      summary: Delete avatar
+      tags:
+      - Authentication Profile
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Avatar deleted successfully.
   /auth/providers/:
     get:
       operationId: auth_providers_list
@@ -417,6 +446,77 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+  /tenants/info/:
+    get:
+      operationId: tenant_get
+      description: Retrieve the current user's tenant information. Logo field is read-only
+        here. Use /tenant/logo/ for logo uploads.
+      summary: Get tenant information
+      tags:
+      - Tenant Info
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+    patch:
+      operationId: tenant_update
+      description: Update the current user's tenant information. Logo field is read-only
+        here. Use /tenant/logo/ for logo uploads.
+      summary: Update tenant information
+      tags:
+      - Tenant Info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+  /tenants/info/logo/:
+    put:
+      operationId: tenant_logo_upload
+      description: Upload or replace the tenant's logo. Expects multipart/form-data.
+      summary: Upload or replace tenant logo
+      tags:
+      - Tenant Info
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenantLogoRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLogo'
+          description: ''
+    delete:
+      operationId: tenant_logo_delete
+      description: Delete the tenant's logo.
+      summary: Delete tenant logo
+      tags:
+      - Tenant Info
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Logo deleted successfully.
   /tenants/invitations/:
     get:
       operationId: tenants_invitations_list
@@ -484,77 +584,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invitation'
           description: ''
-  /tenants/me/:
-    get:
-      operationId: tenant_get
-      description: Retrieve the current user's tenant information. Logo field is read-only
-        here. Use /tenant/logo/ for logo uploads.
-      summary: Get tenant information
-      tags:
-      - Tenant Info
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-          description: ''
-    patch:
-      operationId: tenant_update
-      description: Update the current user's tenant information. Logo field is read-only
-        here. Use /tenant/logo/ for logo uploads.
-      summary: Update tenant information
-      tags:
-      - Tenant Info
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTenantRequest'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-          description: ''
-  /tenants/me/logo/:
-    put:
-      operationId: tenant_logo_upload
-      description: Upload or replace the tenant's logo. Expects multipart/form-data.
-      summary: Upload or replace tenant logo
-      tags:
-      - Tenant Logo
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TenantLogoRequest'
-        required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantLogo'
-          description: ''
-    delete:
-      operationId: tenant_logo_delete
-      description: Delete the tenant's logo.
-      summary: Delete tenant logo
-      tags:
-      - Tenant Logo
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          description: Logo deleted successfully.
   /tenants/tenant-users/:
     get:
       operationId: tenants_tenant_users_list
@@ -624,6 +653,22 @@ paths:
           description: No response body
 components:
   schemas:
+    AvatarUpload:
+      type: object
+      description: Serializer for avatar upload operations.
+      properties:
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+    AvatarUploadRequest:
+      type: object
+      description: Serializer for avatar upload operations.
+      properties:
+        avatar:
+          type: string
+          format: binary
+          nullable: true
     CodeConfirmError:
       type: object
       description: Error serializer for code confirmation failures.
@@ -712,14 +757,6 @@ components:
           type: string
           format: uri
           maxLength: 200
-    PatchedUserProfileRequest:
-      type: object
-      description: Serializer for user profile data (avatar, etc.).
-      properties:
-        avatar:
-          type: string
-          format: binary
-          nullable: true
     PatchedUserRequest:
       type: object
       description: Serializer for basic user information.
@@ -1068,15 +1105,10 @@ components:
         avatar:
           type: string
           format: uri
+          readOnly: true
           nullable: true
-    UserProfileRequest:
-      type: object
-      description: Serializer for user profile data (avatar, etc.).
-      properties:
-        avatar:
-          type: string
-          format: binary
-          nullable: true
+      required:
+      - avatar
   securitySchemes:
     cookieAuth:
       type: apiKey

@@ -5,8 +5,7 @@ import { Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import { ImageCropper } from "./ImageCropper";
-import { authProfileMePartialUpdate } from "@/api/django/authentication-user-profile/authentication-user-profile";
-import type { PatchedUserProfileRequest } from "@/api/django/djangoAPI.schemas";
+import { profileAvatarDelete, profileAvatarUpload } from "@/api/django/authentication-profile/authentication-profile";
 
 export function AvatarUpload() {
   const { user, updateAvatar } = useUserStore();
@@ -48,13 +47,8 @@ export function AvatarUpload() {
       const response = await fetch(croppedImageUrl);
       const blob = await response.blob();
       const file = new File([blob], "avatar.png", { type: "image/png" });
-      const patchedUserProfileRequest: PatchedUserProfileRequest = {
-        avatar: file
-      };
 
-      const uploadResponse = await authProfileMePartialUpdate(
-        patchedUserProfileRequest
-      );
+      const uploadResponse = await profileAvatarUpload({ avatar: file });
 
       // Update the user store with the new avatar
       updateAvatar(uploadResponse.avatar ?? null);
@@ -74,11 +68,7 @@ export function AvatarUpload() {
   const handleDelete = async () => {
     setIsUploading(true);
     try {
-      const patchedUserProfileRequest: PatchedUserProfileRequest = {
-        avatar: null
-      };
-
-      await authProfileMePartialUpdate(patchedUserProfileRequest);
+      await profileAvatarDelete();
 
       // Update the user store to remove the avatar
       updateAvatar(null);
@@ -109,7 +99,7 @@ export function AvatarUpload() {
         <div className="relative group">
           <Avatar className="h-24 w-24">
             <AvatarImage
-              src={user?.profile.avatar ?? undefined}
+              src={user?.profile?.avatar ?? undefined}
               alt={user?.full_name}
             />
             <AvatarFallback className="text-2xl">

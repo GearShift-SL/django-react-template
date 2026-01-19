@@ -18,8 +18,8 @@ router.register(r"tenant-users", TenantUserViewSet, basename="tenant-users")
 
 
 urlpatterns = [
-    path("me/", TenantInfoView.as_view(), name="tenant-me"),
-    path("me/logo/", TenantLogoView.as_view(), name="tenant-logo"),
+    path("info/", TenantInfoView.as_view(), name="tenant-info"),
+    path("info/logo/", TenantLogoView.as_view(), name="tenant-info-logo"),
 ]
 
 urlpatterns += router.urls
