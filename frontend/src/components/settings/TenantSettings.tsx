@@ -22,8 +22,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/UserStore";
 import {
-  tenantsTenantMeRetrieve,
-  tenantsTenantMeUpdate
+  tenantGet,
+  tenantUpdate
 } from "@/api/django/tenant-info/tenant-info";
 import { TenantLogoUpload } from "./TenantLogoUpload";
 import { TenantUsersTable } from "./TenantUsersTable";
@@ -54,7 +54,7 @@ export function TenantSettings() {
   useEffect(() => {
     const fetchTenant = async () => {
       try {
-        const tenant = await tenantsTenantMeRetrieve();
+        const tenant = await tenantGet();
         form.reset({
           name: tenant.name ?? ""
         });
@@ -71,7 +71,7 @@ export function TenantSettings() {
   const onSubmit = async (values: TenantNameValues) => {
     setIsSubmitting(true);
     try {
-      const updatedTenant = await tenantsTenantMeUpdate({
+      const updatedTenant = await tenantUpdate({
         name: values.name
       });
 

@@ -2,19 +2,19 @@
 from datetime import timedelta
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 
 # Django Rest Framework
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 
 # Local App
 from .models import Invitation, TenantLogo, TenantUser
-from .tasks import send_invitation_email_task
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
     InvitationSerializer,
@@ -24,82 +24,153 @@ from .serializers import (
     TenantUserUpdateSerializer,
 )
 from .mixins import TenantAwareMixin
+from .tasks import send_invitation_email_task
+
+# Authentication app
+from authentication.models import User
 
 
 @extend_schema_view(me=extend_schema(tags=["Tenant Info"]))
-class TenantInfoViewset(viewsets.GenericViewSet):
-    serializer_class = TenantSerializer
+class TenantInfoView(APIView):
+    """
+    API View for managing the current user's tenant information.
+    GET/PATCH /tenant/
+    """
 
-    def get_permissions(self):
-        if self.action == "me" and self.request.method == "GET":
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
-        return [permission() for permission in permission_classes]
-
-    @action(detail=False, methods=["get", "put"])
-    def me(self, request):
-        tenant = request.user.tenant_user.tenant
-        if request.method == "GET":
-            serializer = self.get_serializer(tenant)
-            return Response(serializer.data)
-
-        serializer = self.get_serializer(tenant, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-
-@extend_schema_view(
-    get=extend_schema(tags=["Tenant Logo"]),
-    post=extend_schema(tags=["Tenant Logo"]),
-    delete=extend_schema(tags=["Tenant Logo"]),
-)
-class TenantLogoView(GenericAPIView):
-    parser_classes = [MultiPartParser]
-    serializer_class = TenantLogoSerializer
+    parser_classes = [JSONParser]
 
     def get_permissions(self):
         if self.request.method == "GET":
             permission_classes = [IsAuthenticated]
         else:
+            """
+            Only owners and admins can update the tenant information.
+            """
             permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def get_object(self):
-        try:
-            return TenantLogo.objects.get(tenant=self.request.user.tenant_user.tenant)
-        except TenantLogo.DoesNotExist:
-            return None
-
+    @extend_schema(
+        tags=["Tenant Info"],
+        operation_id="tenant_get",
+        summary="Get tenant information",
+        description="Retrieve the current user's tenant information. Logo field is read-only here. Use /tenant/logo/ for logo uploads.",
+        responses={
+            200: TenantSerializer,
+        },
+    )
     def get(self, request):
-        instance = self.get_object()
-        if not instance:
-            return Response(
-                {"detail": "No logo found for this tenant."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        serializer = TenantLogoSerializer(instance)
+        """
+        GET /tenant/me/
+
+        Retrieves tenant data in JSON format. Logo field is read-only here.
+        Use the logo endpoint for logo uploads.
+        """
+        tenant = request.user.tenant_user.tenant
+        serializer = TenantSerializer(tenant, context={"request": request})
         return Response(serializer.data)
 
-    def post(self, request):
-        existing_logo = self.get_object()
-        if existing_logo:
-            existing_logo.delete()
+    @extend_schema(
+        tags=["Tenant Info"],
+        operation_id="tenant_update",
+        summary="Update tenant information",
+        description="Update the current user's tenant information. Logo field is read-only here. Use /tenant/logo/ for logo uploads.",
+        request=TenantSerializer,
+        responses={
+            200: TenantSerializer,
+        },
+    )
+    def patch(self, request):
+        """
+        PATCH /tenant/me/
 
-        serializer = TenantLogoSerializer(data=request.data)
+        Updates tenant data in JSON format. Logo field is read-only here.
+        Use the logo endpoint for logo uploads.
+        """
+        tenant = request.user.tenant_user.tenant
+        serializer = TenantSerializer(
+            tenant, data=request.data, partial=True, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-        serializer.save(tenant=request.user.tenant_user.tenant)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response(serializer.data)
 
+
+class TenantLogoView(APIView):
+    """
+    API View for managing the current user's tenant logo.
+    PUT/DELETE /tenant/logo/
+    """
+
+    parser_classes = [MultiPartParser]
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+        return [permission() for permission in permission_classes]
+
+    @extend_schema(
+        tags=["Tenant Logo"],
+        operation_id="tenant_logo_upload",
+        summary="Upload or replace tenant logo",
+        description="Upload or replace the tenant's logo. Expects multipart/form-data.",
+        request=TenantLogoSerializer,
+        responses={
+            200: TenantLogoSerializer,
+        },
+    )
+    def put(self, request):
+        """
+        PUT /tenant/logo/
+
+        Upload or replace tenant logo. Expects multipart/form-data.
+        """
+        tenant = request.user.tenant_user.tenant
+
+        # Get or create the logo object
+        logo, created = TenantLogo.objects.get_or_create(tenant=tenant)
+
+        # If updating, delete the old image file
+        if not created and logo.image:
+            logo.image.delete(save=False)
+
+        serializer = TenantLogoSerializer(
+            logo, data=request.data, partial=False, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        tags=["Tenant Logo"],
+        operation_id="tenant_logo_delete",
+        summary="Delete tenant logo",
+        description="Delete the tenant's logo.",
+        responses={
+            200: OpenApiResponse(
+                description="Logo deleted successfully.",
+            ),
+        },
+    )
     def delete(self, request):
-        instance = self.get_object()
-        if not instance:
+        """
+        DELETE /tenant/logo/
+
+        Delete the tenant logo.
+        """
+        tenant = request.user.tenant_user.tenant
+
+        try:
+            logo = TenantLogo.objects.get(tenant=tenant)
+            # Delete the image file
+            if logo.image:
+                logo.image.delete(save=False)
+            logo.delete()
+            return Response(
+                {"detail": "Logo deleted successfully."}, status=status.HTTP_200_OK
+            )
+        except TenantLogo.DoesNotExist:
             return Response(
                 {"detail": "No logo found to delete."}, status=status.HTTP_404_NOT_FOUND
             )
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(
@@ -216,6 +287,24 @@ class InvitationViewSet(
     queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Check if a user with this email already exists
+        email = serializer.validated_data.get("email")
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"detail": _("A user with this email already exists.")},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def perform_create(self, serializer):
         serializer.save(

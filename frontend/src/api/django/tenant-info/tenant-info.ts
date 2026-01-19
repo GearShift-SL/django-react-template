@@ -1,35 +1,43 @@
 // @ts-nocheck
-import type { Tenant, TenantRequest } from "../djangoAPI.schemas";
+import type { PatchedTenantRequest, Tenant } from "../djangoAPI.schemas";
 
 import { customAxiosInstance } from "../../axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const tenantsTenantMeRetrieve = (
+/**
+ * Retrieve the current user's tenant information. Logo field is read-only here. Use /tenant/logo/ for logo uploads.
+ * @summary Get tenant information
+ */
+export const tenantGet = (
   options?: SecondParameter<typeof customAxiosInstance<Tenant>>,
 ) => {
   return customAxiosInstance<Tenant>(
-    { url: `/tenants/tenant/me/`, method: "GET" },
+    { url: `/tenants/me/`, method: "GET" },
     options,
   );
 };
-export const tenantsTenantMeUpdate = (
-  tenantRequest: TenantRequest,
+/**
+ * Update the current user's tenant information. Logo field is read-only here. Use /tenant/logo/ for logo uploads.
+ * @summary Update tenant information
+ */
+export const tenantUpdate = (
+  patchedTenantRequest: PatchedTenantRequest,
   options?: SecondParameter<typeof customAxiosInstance<Tenant>>,
 ) => {
   return customAxiosInstance<Tenant>(
     {
-      url: `/tenants/tenant/me/`,
-      method: "PUT",
+      url: `/tenants/me/`,
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      data: tenantRequest,
+      data: patchedTenantRequest,
     },
     options,
   );
 };
-export type TenantsTenantMeRetrieveResult = NonNullable<
-  Awaited<ReturnType<typeof tenantsTenantMeRetrieve>>
+export type TenantGetResult = NonNullable<
+  Awaited<ReturnType<typeof tenantGet>>
 >;
-export type TenantsTenantMeUpdateResult = NonNullable<
-  Awaited<ReturnType<typeof tenantsTenantMeUpdate>>
+export type TenantUpdateResult = NonNullable<
+  Awaited<ReturnType<typeof tenantUpdate>>
 >;

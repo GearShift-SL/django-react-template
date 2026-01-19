@@ -484,11 +484,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invitation'
           description: ''
-  /tenants/tenant-logo/:
+  /tenants/me/:
     get:
-      operationId: tenants_tenant_logo_retrieve
+      operationId: tenant_get
+      description: Retrieve the current user's tenant information. Logo field is read-only
+        here. Use /tenant/logo/ for logo uploads.
+      summary: Get tenant information
       tags:
-      - Tenant Logo
+      - Tenant Info
       security:
       - cookieAuth: []
       responses:
@@ -496,10 +499,34 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TenantLogo'
+                $ref: '#/components/schemas/Tenant'
           description: ''
-    post:
-      operationId: tenants_tenant_logo_create
+    patch:
+      operationId: tenant_update
+      description: Update the current user's tenant information. Logo field is read-only
+        here. Use /tenant/logo/ for logo uploads.
+      summary: Update tenant information
+      tags:
+      - Tenant Info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenantRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: ''
+  /tenants/me/logo/:
+    put:
+      operationId: tenant_logo_upload
+      description: Upload or replace the tenant's logo. Expects multipart/form-data.
+      summary: Upload or replace tenant logo
       tags:
       - Tenant Logo
       requestBody:
@@ -518,14 +545,16 @@ paths:
                 $ref: '#/components/schemas/TenantLogo'
           description: ''
     delete:
-      operationId: tenants_tenant_logo_destroy
+      operationId: tenant_logo_delete
+      description: Delete the tenant's logo.
+      summary: Delete tenant logo
       tags:
       - Tenant Logo
       security:
       - cookieAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          description: Logo deleted successfully.
   /tenants/tenant-users/:
     get:
       operationId: tenants_tenant_users_list
@@ -593,45 +622,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /tenants/tenant/me/:
-    get:
-      operationId: tenants_tenant_me_retrieve
-      tags:
-      - Tenant Info
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-          description: ''
-    put:
-      operationId: tenants_tenant_me_update
-      tags:
-      - Tenant Info
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TenantRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TenantRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TenantRequest'
-        required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-          description: ''
 components:
   schemas:
     CodeConfirmError:
@@ -708,6 +698,20 @@ components:
           maxLength: 254
       required:
       - email
+    PatchedTenantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        logo:
+          type: string
+          format: binary
+        website:
+          type: string
+          format: uri
+          maxLength: 200
     PatchedUserProfileRequest:
       type: object
       description: Serializer for user profile data (avatar, etc.).
@@ -940,22 +944,6 @@ components:
           format: binary
       required:
       - image
-    TenantRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        logo:
-          type: string
-          format: binary
-        website:
-          type: string
-          format: uri
-          maxLength: 200
-      required:
-      - name
     TenantUserList:
       type: object
       properties:
