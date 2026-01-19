@@ -4,8 +4,8 @@ import logging
 import json
 
 # Django Rest Framework
-from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import AllowAny
+from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -34,6 +34,7 @@ from drf_spectacular.utils import (
 
 # Local App
 from .serializers import (
+    AvatarUploadSerializer,
     CodeConfirmErrorSerializer,
     CodeConfirmRequestSerializer,
     CodeConfirmResponseSerializer,
@@ -467,36 +468,123 @@ class UserViewSet(GenericViewSet):
         return Response(UserMeSerializer(request.user).data)
 
 
-@extend_schema_view(me=extend_schema(tags=["Authentication User Profile"]))
-class UserProfileViewSet(GenericViewSet):
+class UserProfileView(APIView):
     """
     ViewSet for managing the current user's profile avatar and other profile data.
     """
 
-    parser_classes = [MultiPartParser]
-    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
-    def get_queryset(self):
-        # Scope to the current user only
-        return UserProfile.objects.filter(user=self.request.user)
+    @extend_schema(
+        tags=["Authentication User Profile"],
+        operation_id="profile_get",
+        summary="Get user profile",
+        description="Retrieve the current user's profile. Avatar field is read-only here. Use /auth/profile/avatar/ for avatar uploads.",
+        responses={
+            200: UserProfileSerializer,
+        },
+    )
+    def get(self, request):
+        """
+        GET /auth/profile/
 
-    def get_serializer_class(self):
-        if getattr(self, "action", None) == "me" and self.request.method == "GET":
-            return UserProfileSerializer
-        return UserProfileSerializer
-
-    @action(detail=False, methods=["get", "patch"])
-    def me(self, request):
+        Retrieves profile data in JSON format. Avatar field is read-only here.
+        Use the avatar endpoint for avatar uploads.
+        """
         profile, created = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSerializer(profile, context={"request": request})
+        return Response(serializer.data)
 
-        if request.method == "GET":
-            serializer = UserProfileSerializer(profile, context={"request": request})
-            return Response(serializer.data)
+    @extend_schema(
+        tags=["Authentication User Profile"],
+        operation_id="profile_update",
+        summary="Update user profile",
+        description="Update the current user's profile. Avatar field is read-only here. Use /auth/profile/avatar/ for avatar uploads.",
+        request=UserProfileSerializer,
+        responses={
+            200: UserProfileSerializer,
+        },
+    )
+    def patch(self, request):
+        """
+        PATCH /auth/profile/
 
-        partial = request.method == "PATCH"
+        Updates profile data in JSON format. Avatar field is read-only here.
+        Use the avatar endpoint for avatar uploads.
+        """
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
         serializer = UserProfileSerializer(
-            profile, data=request.data, partial=partial, context={"request": request}
+            profile, data=request.data, partial=True, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class UserProfileAvatarView(APIView):
+    """
+    API View for managing the current user's avatar.
+    PUT/DELETE /auth/profile/avatar/
+    """
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(
+        tags=["Authentication Profile"],
+        operation_id="profile_avatar_upload",
+        summary="Upload or replace avatar",
+        description="Upload or replace the user's avatar. Expects multipart/form-data.",
+        request=AvatarUploadSerializer,
+        responses={
+            200: AvatarUploadSerializer,
+        },
+        examples=[
+            OpenApiExample(
+                "Upload avatar",
+                description="Upload a new avatar image",
+                value={"avatar": "image file"},
+                request_only=True,
+            ),
+        ],
+    )
+    def put(self, request):
+        """
+        PUT /auth/profile/avatar/
+
+        Upload or replace avatar. Expects multipart/form-data.
+        """
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        serializer = AvatarUploadSerializer(
+            profile, data=request.data, partial=False, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    @extend_schema(
+        tags=["Authentication Profile"],
+        operation_id="profile_avatar_delete",
+        summary="Delete avatar",
+        description="Delete the user's avatar.",
+        responses={
+            200: OpenApiResponse(
+                description="Avatar deleted successfully.",
+            ),
+        },
+    )
+    def delete(self, request):
+        """
+        DELETE /auth/profile/avatar/
+
+        Delete the avatar.
+        """
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        if profile.avatar:
+            profile.avatar.delete(save=True)
+            profile.avatar = None
+            profile.save()
+
+        return Response({"detail": "Avatar deleted successfully."}, status=200)

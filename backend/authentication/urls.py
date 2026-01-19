@@ -8,15 +8,15 @@ from .views import (
     ProviderTokenView,
     ProvidersListView,
     StartAuthView,
+    UserProfileView,
+    UserProfileAvatarView,
     UserViewSet,
     SessionView,
-    UserProfileViewSet,
 )
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r"user", UserViewSet, basename="user")
-router.register(r"profile", UserProfileViewSet, basename="profile")
 
 urlpatterns: list[URLPattern] = [
     path("<str:client>/start/", StartAuthView.as_view(), name="auth-start"),
@@ -36,5 +36,7 @@ urlpatterns: list[URLPattern] = [
         name="auth-provider-token",
     ),
     path("<str:client>/session/", SessionView.as_view(), name="auth-session"),
+    path("profile/", UserProfileView.as_view(), name="profile"),
+    path("profile/avatar/", UserProfileAvatarView.as_view(), name="profile-avatar"),
 ]
 urlpatterns += router.urls
