@@ -17,9 +17,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
       user: {
         ...user,
         full_name:
-          user.full_name ??
-          ([user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
-            undefined)
+          [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+          undefined
       }
     }),
   updateAvatar: (avatar) => {
