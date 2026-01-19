@@ -1,5 +1,21 @@
 // @ts-nocheck
 /**
+ * Serializer for avatar upload operations.
+ */
+export interface AvatarUpload {
+  /** @nullable */
+  avatar?: string | null;
+}
+
+/**
+ * Serializer for avatar upload operations.
+ */
+export interface AvatarUploadRequest {
+  /** @nullable */
+  avatar?: Blob | null;
+}
+
+/**
  * Error serializer for code confirmation failures.
  */
 export interface CodeConfirmError {
@@ -53,14 +69,6 @@ export interface PatchedTenantRequest {
   logo?: Blob;
   /** @maxLength 200 */
   website?: string;
-}
-
-/**
- * Serializer for user profile data (avatar, etc.).
- */
-export interface PatchedUserProfileRequest {
-  /** @nullable */
-  avatar?: Blob | null;
 }
 
 /**
@@ -278,13 +286,5 @@ export interface UserMe {
  */
 export interface UserProfile {
   /** @nullable */
-  avatar?: string | null;
-}
-
-/**
- * Serializer for user profile data (avatar, etc.).
- */
-export interface UserProfileRequest {
-  /** @nullable */
-  avatar?: Blob | null;
+  readonly avatar: string | null;
 }

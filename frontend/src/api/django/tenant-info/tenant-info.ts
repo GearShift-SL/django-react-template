@@ -1,5 +1,10 @@
 // @ts-nocheck
-import type { PatchedTenantRequest, Tenant } from "../djangoAPI.schemas";
+import type {
+  PatchedTenantRequest,
+  Tenant,
+  TenantLogo,
+  TenantLogoRequest,
+} from "../djangoAPI.schemas";
 
 import { customAxiosInstance } from "../../axios";
 
@@ -13,7 +18,7 @@ export const tenantGet = (
   options?: SecondParameter<typeof customAxiosInstance<Tenant>>,
 ) => {
   return customAxiosInstance<Tenant>(
-    { url: `/tenants/me/`, method: "GET" },
+    { url: `/tenants/info/`, method: "GET" },
     options,
   );
 };
@@ -27,11 +32,44 @@ export const tenantUpdate = (
 ) => {
   return customAxiosInstance<Tenant>(
     {
-      url: `/tenants/me/`,
+      url: `/tenants/info/`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       data: patchedTenantRequest,
     },
+    options,
+  );
+};
+/**
+ * Upload or replace the tenant's logo. Expects multipart/form-data.
+ * @summary Upload or replace tenant logo
+ */
+export const tenantLogoUpload = (
+  tenantLogoRequest: TenantLogoRequest,
+  options?: SecondParameter<typeof customAxiosInstance<TenantLogo>>,
+) => {
+  const formData = new FormData();
+  formData.append(`image`, tenantLogoRequest.image);
+
+  return customAxiosInstance<TenantLogo>(
+    {
+      url: `/tenants/info/logo/`,
+      method: "PUT",
+      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+    },
+    options,
+  );
+};
+/**
+ * Delete the tenant's logo.
+ * @summary Delete tenant logo
+ */
+export const tenantLogoDelete = (
+  options?: SecondParameter<typeof customAxiosInstance<void>>,
+) => {
+  return customAxiosInstance<void>(
+    { url: `/tenants/info/logo/`, method: "DELETE" },
     options,
   );
 };
@@ -40,4 +78,10 @@ export type TenantGetResult = NonNullable<
 >;
 export type TenantUpdateResult = NonNullable<
   Awaited<ReturnType<typeof tenantUpdate>>
+>;
+export type TenantLogoUploadResult = NonNullable<
+  Awaited<ReturnType<typeof tenantLogoUpload>>
+>;
+export type TenantLogoDeleteResult = NonNullable<
+  Awaited<ReturnType<typeof tenantLogoDelete>>
 >;
