@@ -14,7 +14,7 @@ import { useTenantStore } from "@/stores/TenantStore";
 
 // API
 import { authUserMeRetrieve } from "@/api/django/authentication-user/authentication-user";
-import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
+import { tenantGet } from "@/api/django/tenant-info/tenant-info";
 
 const ProtectedLayout = () => {
   /* ---------------------------------- HOOKS --------------------------------- */
@@ -51,7 +51,7 @@ const ProtectedLayout = () => {
               }),
           tenant
             ? Promise.resolve(tenant)
-            : tenantsTenantMeRetrieve({
+            : tenantGet({
                 signal: controller.signal
               })
         ]);

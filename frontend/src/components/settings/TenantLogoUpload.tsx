@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { tenantsTenantMeRetrieve } from "@/api/django/tenant-info/tenant-info";
+import { tenantGet } from "@/api/django/tenant-info/tenant-info";
 
 import {
-  tenantsTenantLogoCreate,
-  tenantsTenantLogoDestroy
+  tenantLogoUpload,
+  tenantLogoDelete
 } from "@/api/django/tenant-logo/tenant-logo";
 
 export function TenantLogoUpload() {
@@ -19,7 +19,7 @@ export function TenantLogoUpload() {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await tenantsTenantMeRetrieve();
+        const response = await tenantGet();
 
         console.debug(response);
 
@@ -54,7 +54,7 @@ export function TenantLogoUpload() {
 
     setIsUploading(true);
     try {
-      const response = await tenantsTenantLogoCreate({ image: file });
+      const response = await tenantLogoUpload({ image: file });
       setLogoUrl(response.image);
       toast.success("Team logo updated successfully");
     } catch (error) {
@@ -71,7 +71,7 @@ export function TenantLogoUpload() {
   const handleDelete = async () => {
     setIsUploading(true);
     try {
-      await tenantsTenantLogoDestroy();
+      await tenantLogoDelete();
       setLogoUrl(null);
       toast.success("Team logo removed");
     } catch (error) {
