@@ -144,12 +144,17 @@ export function centerAspectCrop(
   mediaHeight: number,
   aspect: number
 ): Crop {
+
+  // For a square crop (aspect = 1), use 100% of the shorter dimension
+  // This ensures the crop area is as large as possible while fitting the image
+  const isLandscape = mediaWidth > mediaHeight;
+  const cropPercentage = isLandscape ? (mediaHeight / mediaWidth) * 100 : 100;
+
   return centerCrop(
     makeAspectCrop(
       {
         unit: "%",
-        width: 50,
-        height: 50
+        width: cropPercentage,
       },
       aspect,
       mediaWidth,
