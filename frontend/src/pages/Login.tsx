@@ -179,7 +179,7 @@ const Login = () => {
                   abajo.
                 </div>
                 <div className="flex w-full justify-center">
-                  <InputOTP maxLength={6} onComplete={handleCodeLogin}>
+                  <InputOTP maxLength={6} onComplete={handleCodeLogin} inputMode="text">
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
