@@ -1,6 +1,6 @@
 // devcontainer.json
 {
-    "name": "Django Backend", // Name of the development container
+    "name": "Django react template Backend", // Name of the development container
     "shutdownAction": "stopCompose", // Container behavior on VSCode close: none, stopContainer (default for image or Dockerfile), and stopCompose (default for Docker Compose)
     "dockerComposeFile": "docker-compose.yml",
     "service": "django",
