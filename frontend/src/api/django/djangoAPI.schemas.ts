@@ -44,6 +44,17 @@ export interface InvitationRequest {
   email: string;
 }
 
+export interface PatchedTenantRequest {
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
+  name?: string;
+  logo?: Blob;
+  /** @maxLength 200 */
+  website?: string;
+}
+
 /**
  * Serializer for user profile data (avatar, etc.).
  */
@@ -209,17 +220,6 @@ export interface TenantLogo {
 
 export interface TenantLogoRequest {
   image: Blob;
-}
-
-export interface TenantRequest {
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  name: string;
-  logo?: Blob;
-  /** @maxLength 200 */
-  website?: string;
 }
 
 export interface TenantUserList {
